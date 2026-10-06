@@ -38,7 +38,7 @@ export function parseGuided(message) {
     const daysMatch = text.match(/(\d+|one|two|three|four)[ -]*(?:(?:easy|relaxed|slow)[ -]+)?days?/) || text.match(/(\d+)日/);
     const japaneseDays = text.match(/(一|二|三|四)日/);
     const interests = [];
-    for (const [id, pattern] of Object.entries({ coffee: /coffee|cafe|café|コーヒー|カフェ/, culture: /culture|art|文化|寺|美術/, food: /food|食|グルメ/, nature: /nature|自然/, shopping: /shopping|買い物/, views: /views?|景色/, family: /family|家族/ })) {
+    for (const [id, pattern] of Object.entries({ coffee: /coffee|cafe|café|コーヒー|カフェ/, culture: /culture|art|temples?|shrines?|museums?|文化|寺|神社|美術/, food: /food|食|グルメ/, nature: /nature|自然/, shopping: /shopping|買い物/, views: /views?|景色/, family: /family|家族/ })) {
       if (pattern.test(text)) interests.push(id);
     }
     return {
