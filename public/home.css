@@ -103,6 +103,8 @@ img { max-width: 100%; }
 .message-label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 5px; white-space: normal; font-weight: 600; }
 .message.user { background: var(--green-soft); border-radius: 15px 15px 3px 15px; margin-left: 22px; padding: 12px 15px; }
 .message.assistant { padding: 2px 0; }
+.suggestion { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 14px; }
+.suggestion[hidden] { display: none; }
 .chat-form { position: relative; border: 1px solid #b8c7b0; border-radius: 15px; padding-bottom: 50px; }
 .chat-form textarea { display: block; width: 100%; max-width: 100%; min-height: 88px; max-height: 240px; resize: vertical; border: 0; border-radius: 15px; padding: 14px; font-size: 17px; line-height: 1.5; background: transparent; }
 .chat-form textarea::placeholder { color: #778375; }

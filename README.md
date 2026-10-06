@@ -112,6 +112,11 @@ The double-click demo launchers and `npm run share` intentionally use guided/dem
 
 - Guided English/Japanese commands plus a trip form and quick actions. Kyoto and
   Seattle, one to four days, curated places, estimated travel times.
+- **Remembers you between visits.** The home plan is saved on this computer. Come
+  back later (even after a restart) and Travel Folio speaks first: it checks the
+  destination calendar and forecast through MCP, then offers the useful next step,
+  e.g. “Rain from 10:00 on day 1 affects Fushimi Inari. Shall I look for indoor
+  alternatives?” Saying yes only prepares a proposal; applying it needs its own confirmation.
 - Every home trip tool runs through an actual MCP SDK client and Streamable HTTP
   endpoint. The SDK supports MCP 2025-11-25. Expand the activity details to inspect calls.
 - New trips and proposed changes wait for the human's exact confirmation. The AI
@@ -146,9 +151,10 @@ and the MCP client. `src/mcp/` defines the actual transport and tools.
 `src/domain/` contains planning and state logic. `public/phone/index.html` is the
 adapted GPT-Pro journal and remains exportable as a single file.
 
-Home sessions are isolated by browser cookie and kept in memory for up to 12 hours
-of inactivity while the server runs. A server restart clears them. The phone journal
-is a separate local copy and does not automatically sync. Browser storage can be
+Home sessions are isolated by a random browser cookie. `npm start` and the launchers
+save each home plan as JSON in `data/homes/` (set `DATA_DIR` to change it), so it
+survives restarts; delete that folder to forget saved plans. A damaged file is never
+overwritten. The phone journal is a separate local copy and does not automatically sync. Browser storage can be
 cleared by the browser or user: export a backup of memories you want to keep.
 
 The MCP endpoint uses an internal server-generated bearer credential and is bound

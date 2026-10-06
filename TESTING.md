@@ -7,8 +7,15 @@ These results cover this integrated app, not the older standalone bundle's repor
 
 From this directory run `npm ci`, then `npm test`.
 
-**66 tests passed, 0 failed.** This includes the original 38 checks plus 10 voice
-API and 18 voice-controller checks. No cloud credentials or model charges are required.
+**71 tests passed, 0 failed** (2026-10-06). This includes the original 38 checks,
+10 voice API, 18 voice-controller and 5 returning-visit checks. No cloud credentials
+or model charges are required.
+
+- 5 returning-visit tests (`test/memory.test.js`): a saved plan survives a real server
+  restart and is re-read through MCP; one proactive greeting per return; before, during
+  and after the trip wording; "yes" to the offer only prepares a proposal; "no" and a
+  later "yes" change nothing; other browsers cannot see it; damaged files stay untouched;
+  nothing is written without a data directory.
 
 - 10 backend tests: actual HTTP/MCP journey, isolated sessions, origin/auth/input
   rejection, concurrent confirmation, bounded guided/Bedrock tool execution,
@@ -34,6 +41,11 @@ Bedrock tests inject model responses. They verify the adapter and confirmation
 boundaries, not AWS permissions, model availability or answer quality.
 
 ## Browser checks
+
+2026-10-06: the returning-visit flow was checked manually in Chromium after a real
+server restart: restored itinerary, welcome-back message, suggestion button, resulting
+indoor proposal, no console errors. The Playwright `qa/` scripts below were not re-run
+for this change.
 
 The `qa/browser-*.js` files each contain an async Playwright function accepting
 `page`. Start the app, open its origin in Playwright, then execute each file via
@@ -138,5 +150,5 @@ is best-effort because localStorage has no equivalent transaction across tabs.
   microphone recognition and physical Echo/Alexa+ integration are **not verified**.
   The app presents Alexa+ as a web simulation.
 - No public deployment or contest submission has been made. Home plans are
-  session memory and are cleared on server restart; phone journals are browser-local
+  saved in `data/homes/` when started with `npm start` or a launcher; phone journals are browser-local
   copies and should be exported for safekeeping.

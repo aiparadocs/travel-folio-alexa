@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process';
-import { startServer } from '../src/server.js';
+import { DEFAULT_DATA_DIR, startServer } from '../src/server.js';
 
 // Double-click launchers always use the demo; paid Bedrock mode is opt-in via npm start.
 const sharing = process.argv.includes('--share');
@@ -10,6 +10,7 @@ try {
     agentMode: 'guided',
     weatherMode: 'demo',
     publicBaseUrl: process.env.PUBLIC_BASE_URL || undefined,
+    dataDir: process.env.DATA_DIR || DEFAULT_DATA_DIR,
   });
   const address = `http://127.0.0.1:${app.server.address().port}`;
   console.log(`\nTravel Folio: ${address}\nGuided demo and sample weather. No AWS setup needed.`);

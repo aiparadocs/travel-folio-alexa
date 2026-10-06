@@ -42,6 +42,8 @@
     if (voice) voice.setAvailable(!value && !!state);
     document.querySelectorAll('[data-action]').forEach((button) => { button.disabled = value || !state?.trip; });
     $('confirm-proposal').disabled = value || !state?.proposal;
+    $('suggestion-button').disabled = value;
+    $('suggestion-dismiss').disabled = value;
     $('decline-proposal').disabled = value || !state?.proposal;
     document.querySelector('.folio').setAttribute('aria-busy', String(value));
     $('action-status').textContent = label;
@@ -215,7 +217,10 @@
     $('mode-description').textContent = bedrock ? 'Conversation uses Amazon Bedrock. Trip changes still need your confirmation. The buttons are available for direct requests, too.' : 'Guided conversation understands a few travel requests: create a trip, check rain, find indoor alternatives, delay a day, add coffee, undo or take the plan to your phone. The buttons work without an AI account.';
     $('weather-description').textContent = config.weatherMode === 'demo' ? 'Sample weather is enabled: a fixed rainy first day, from 10:00 to 17:00. It helps you try a change and is not a real forecast.' : 'Forecasts are requested from Open-Meteo for your selected date. If data is unavailable, the app says so. A suggestion is never a guarantee of opening hours or availability.';
     if ((!previous?.trip && state.trip) || previous?.trip?.tripId !== state.trip?.tripId && state.trip) $('trip-options').open = false;
+    $('memory-description').textContent = config.remembers ? 'Your home plan is saved on this computer, so it is still here when you come back, even after a restart.' : 'Your home plan lasts while the server is running.';
     renderMessages(state.messages);
+    $('suggestion').hidden = !state.suggestion;
+    $('suggestion-label').textContent = state.suggestion?.label || '';
     renderProposal(state.proposal);
     renderTrip(state.trip);
     renderWeather(state.weather);
@@ -320,7 +325,10 @@
       $('connection-message').textContent = error.message;
       $('connection-error').hidden = false;
       $('mode-label').textContent = 'Planner is offline';
+      return;
     } finally { $('retry-load').disabled = false; setBusy(false); }
+    // Returning with a saved plan: let the assistant speak first.
+    if (state?.briefingDue && !state.proposal) perform('/api/action', { action: 'briefing' });
   }
 
   $('trip-form').addEventListener('submit', (event) => {
@@ -355,6 +363,8 @@
   }));
   $('confirm-proposal').addEventListener('click', () => { if (state?.proposal) perform('/api/action', { action: 'confirm', proposalId: state.proposal.proposalId }); });
   $('decline-proposal').addEventListener('click', () => { if (state?.proposal) perform('/api/action', { action: 'decline', proposalId: state.proposal.proposalId }); });
+  $('suggestion-button').addEventListener('click', () => { if (state?.suggestion) perform('/api/action', { action: state.suggestion.action, day: state.suggestion.day }); });
+  $('suggestion-dismiss').addEventListener('click', () => { if (state?.suggestion) perform('/api/action', { action: 'decline' }); });
   $('retry-load').addEventListener('click', load);
   $('close-handoff').addEventListener('click', () => $('handoff-dialog').close());
   $('handoff-dialog').addEventListener('close', () => { lastFocused?.focus?.({ preventScroll: true }); });

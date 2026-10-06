@@ -79,13 +79,16 @@ export class UserError extends Error {
   constructor(message, status = 400) { super(message); this.status = status; }
 }
 
-function tomorrow(city) {
-  const zone = city === 'seattle' ? 'America/Los_Angeles' : 'Asia/Tokyo';
-  const today = new Intl.DateTimeFormat('en-CA', { timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-  const date = new Date(`${today}T12:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + 1);
+const zoneOf = (city) => city === 'seattle' ? 'America/Los_Angeles' : 'Asia/Tokyo';
+const localDate = (city, now = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: zoneOf(city), year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
+function shiftDate(iso, days) {
+  const date = new Date(`${iso}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 }
+const tomorrow = (city) => shiftDate(localDate(city), 1);
+const longDate = (iso) => new Intl.DateTimeFormat('en', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`));
+const listTitles = (items) => items.length < 3 ? items.join(' and ') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`;
 
 export class ConversationSession {
   constructor({ id, url, token, config, bedrockModelId, region, bedrockSend }) {
@@ -111,6 +114,50 @@ export class ConversationSession {
     this.rateCount = 0;
     this.lastToolResult = null;
     this.handoffCreatedThisTurn = false;
+    this.briefingDue = false;
+    this.suggestion = null;
+  }
+  /** Rebuild the conversation view from a plan saved on an earlier visit. */
+  async restore() {
+    await this.tool('get_itinerary');
+    this.messages = [];
+    this.briefingDue = true;
+  }
+  /**
+   * A proactive "welcome back" turn: look at the saved plan, the destination's
+   * clock and the forecast, then offer (never apply) the most useful next step.
+   */
+  async briefing(now = new Date()) {
+    this.briefingDue = false;
+    this.suggestion = null;
+    if (!this.trip) return 'Where would you like to go: Kyoto or Seattle?';
+    const city = cityName(this.trip.city, false);
+    const days = this.trip.days;
+    const today = localDate(this.trip.city, now);
+    const first = days[0].date;
+    const last = days.at(-1).date;
+    if (today > last) return `Welcome back. Your ${city} trip has finished. Your photos and words stay in the phone journal, and Print turns them into a one-page keepsake.`;
+    const travelling = today >= first;
+    const day = travelling ? days.findIndex((entry) => entry.date === today) + 1 : 1;
+    const when = travelling ? `Today is day ${day} of your ${city} trip.` : `Your ${days.length}-day ${city} trip starts ${first === shiftDate(today, 1) ? 'tomorrow' : longDate(first)}.`;
+    const parts = [`Welcome back. ${when}`];
+    if (travelling) {
+      const next = await this.tool('get_next_stop', { day });
+      if (next.data.next) parts.push(`Next up: ${next.data.next.title} at ${next.data.next.time}.`);
+    }
+    let weather;
+    try { weather = (await this.tool('check_weather', { day })).data; } catch { weather = null; }
+    if (!weather || weather.source === 'unavailable') {
+      parts.push(`I could not get a forecast for day ${day}, so I have not suggested any weather changes.`);
+    } else if (weather.atRisk?.length) {
+      const window = weather.rainyWindow ? ` from ${weather.rainyWindow.from} to ${weather.rainyWindow.to}` : '';
+      const source = weather.source === 'demo' ? 'The sample weather shows' : 'The forecast shows';
+      parts.push(`${source} rain${window} on day ${day}, which affects ${listTitles(weather.atRisk.map((stop) => stop.title))}. Shall I look for indoor alternatives? Nothing changes until you confirm.`);
+      this.suggestion = { action: 'rain_swap', day, label: `Find indoor alternatives for day ${day}` };
+    } else {
+      parts.push(`No significant rain is expected for the outdoor stops on day ${day}.${travelling ? '' : ' When you are ready, take the plan to your phone.'}`);
+    }
+    return parts.join(' ');
   }
   pruneProposal() {
     const proposal = this.proposal;
@@ -126,6 +173,7 @@ export class ConversationSession {
     return {
       trip: this.trip, proposal: this.proposal, handoff: this.handoff, weather: this.weather,
       config: this.config, messages: this.messages, trace: this.trace,
+      briefingDue: this.briefingDue && !!this.trip, suggestion: this.proposal ? null : this.suggestion,
       ...(reply !== undefined ? { reply } : {}),
     };
   }
@@ -173,6 +221,8 @@ export class ConversationSession {
   async action(input) {
     this.pruneProposal();
     const action = input.action;
+    if (action === 'briefing') return this.briefing();
+    this.suggestion = null;
     if (action === 'open' || action === 'repeat') return this.trip ? `Your ${this.trip.days.length}-day ${cityName(this.trip.city, false)} plan is here. Ask about the weather, make a change, or take it to your phone.` : 'Where would you like to go: Kyoto or Seattle? You can also tell me the number of days and what you enjoy.';
     if (action === 'create') return this.prepareCreate(input);
     if (action === 'decline') {
@@ -270,7 +320,12 @@ export class ConversationSession {
     let confirmedKind = null;
     let reply;
     // Only the direct human utterance is interpreted here. Model text never reaches this branch.
-    if (parsed && (voice || this.config.agentMode === 'guided' || ['confirm', 'decline', 'undo'].includes(parsed.action))) {
+    const suggestion = this.proposal ? null : this.suggestion;
+    if (parsed?.action === 'confirm' && suggestion) {
+      // Accepting an offer only prepares a proposal; applying it still needs its own confirmation.
+      reply = await this.action({ action: suggestion.action, day: suggestion.day });
+      parsed.action = suggestion.action;
+    } else if (parsed && (voice || this.config.agentMode === 'guided' || ['confirm', 'decline', 'undo'].includes(parsed.action))) {
       if (parsed.action === 'confirm') {
         if (voice && isVoiceConfirmation(message) && typeof proposalId === 'string' && proposalId === this.proposal?.proposalId) {
           confirmedKind = this.proposal.kind;
@@ -296,6 +351,7 @@ export class ConversationSession {
         throw new UserError(`Bedrock could not finish this request. No changes were applied. Use the buttons or try again. ${error.name === 'AbortError' ? 'The request timed out.' : 'Check the model, region and AWS access configuration.'}`, 502);
       }
     } else reply = GUIDED_HELP;
+    this.suggestion = null; // An offer is only answerable on the very next turn.
     this.addMessage('assistant', reply);
     return { ...this.snapshot(reply), ...this.voiceResponse(reply, { language, action: parsed?.action, confirmationBlocked, confirmedKind }) };
   }

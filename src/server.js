@@ -1,5 +1,6 @@
 import express from 'express';
 import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -10,6 +11,9 @@ import { ConversationSession, UserError } from './agent/session.js';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const COOKIE = 'travel_folio_session';
 const IDLE_TTL = 12 * 60 * 60 * 1000;
+const REMEMBER_TTL = 60 * 24 * 60 * 60 * 1000;
+const BRIEFING_GAP = 2 * 60 * 60 * 1000;
+export const DEFAULT_DATA_DIR = path.join(HERE, '..', 'data');
 
 export function lanAddresses(interfaces = os.networkInterfaces()) {
   const candidates = Object.entries(interfaces).flatMap(([name, entries]) => (entries || [])
@@ -49,7 +53,11 @@ export async function startServer(options = {}) {
     publicUrl = new URL(configuredBase);
     if (!['http:', 'https:'].includes(publicUrl.protocol) || publicUrl.username || publicUrl.password || publicUrl.search || publicUrl.hash || !['', '/'].includes(publicUrl.pathname)) throw new Error('PUBLIC_BASE_URL must be an HTTP(S) origin, without credentials, path, query or fragment.');
   }
-  const config = { agentMode, weatherMode, bedrockConfigured: Boolean(bedrockModelId && region) };
+  // With a data directory, each browser's home plan is saved under its random
+  // session id and restored on the next visit, even after a server restart.
+  const dataDir = options.dataDir !== undefined ? options.dataDir : process.env.DATA_DIR || null;
+  const homeFile = (id) => dataDir ? path.join(dataDir, 'homes', `${id}.json`) : null;
+  const config = { agentMode, weatherMode, bedrockConfigured: Boolean(bedrockModelId && region), remembers: Boolean(dataDir) };
   const app = express();
   const sessions = new Map();
   const stores = new Map();
@@ -76,7 +84,7 @@ export async function startServer(options = {}) {
     authorize: (req) => bearerMatches(req.headers.authorization, token),
     owner: (req) => req.header('x-folio-session'),
   });
-  app.use('/api', (req, res, next) => {
+  app.use('/api', async (req, res, next) => {
     res.setHeader('Cache-Control', 'no-store');
     if (req.method !== 'GET' && !req.headers.origin) return res.status(403).json({ error: 'An Origin header is required for this action.' });
     if (req.method !== 'GET' && !req.is('application/json')) return res.status(415).json({ error: 'Send JSON for this action.' });
@@ -84,12 +92,19 @@ export async function startServer(options = {}) {
     let session = id && sessions.get(id);
     if (!session) {
       if (sessions.size >= 100) return res.status(503).json({ error: 'Too many active browser sessions. Try again later.' });
-      id = randomUUID();
-      stores.set(id, new TripStore());
+      const returning = Boolean(id && dataDir && fs.existsSync(homeFile(id)));
+      if (!returning) id = randomUUID();
+      let store = new TripStore({ file: homeFile(id) });
+      // A damaged save is left untouched for manual recovery; this browser starts fresh.
+      if (store.loadError) { id = randomUUID(); store = new TripStore({ file: homeFile(id) }); }
+      stores.set(id, store);
       session = new ConversationSession({ id, url, token, config, bedrockModelId, region, bedrockSend: options.bedrockSend });
       sessions.set(id, session);
-      res.cookie(COOKIE, id, { httpOnly: true, sameSite: 'strict', secure: req.secure, path: '/', maxAge: IDLE_TTL });
-    }
+      res.cookie(COOKIE, id, { httpOnly: true, sameSite: 'strict', secure: req.secure, path: '/', maxAge: dataDir ? REMEMBER_TTL : IDLE_TTL });
+      if (store.getTrip()) {
+        try { await session.serialized(() => session.restore()); } catch (error) { return next(error); }
+      }
+    } else if (session.trip && Date.now() - session.lastUsed > BRIEFING_GAP) session.briefingDue = true;
     session.lastUsed = Date.now();
     req.folio = session;
     next();
@@ -163,9 +178,9 @@ export async function startServer(options = {}) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-  startServer().then((running) => {
+  startServer({ dataDir: process.env.DATA_DIR || DEFAULT_DATA_DIR }).then((running) => {
     console.log(`Travel Folio is ready at ${running.url}`);
-    console.log('Guided conversation and demo weather need no cloud credentials. Home plans last for this server session.');
+    console.log('Guided conversation and demo weather need no cloud credentials. Home plans are saved in the data folder on this computer.');
     if (running.publicBaseUrl !== running.url) console.log(`Phone handoff base: ${running.publicBaseUrl}`);
     for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => running.close().then(() => { process.exitCode = 0; }));
   }).catch((error) => {
