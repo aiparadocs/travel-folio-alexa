@@ -56,10 +56,28 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
 /* Memories slideshow: a scrapbook page on warm paper. */
 #root.memories { background: #f3ead8; color: #3b2f22; padding: 22px 26px; gap: 10px; }
 .mem-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 800; color: #7a6248; letter-spacing: .02em; }
-.mem { flex: 1; display: grid; grid-template-columns: 430px 1fr; gap: 26px; align-items: center; min-height: 0; animation: memIn .6s ease; }
-@keyframes memIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.polaroid { background: #fffdf8; padding: 12px 12px 34px; border-radius: 6px; box-shadow: 0 6px 18px rgba(80, 60, 30, .22); transform: rotate(-1.6deg); height: 380px; display: flex; align-items: center; justify-content: center; position: relative; }
-.polaroid img.photo { max-width: 100%; max-height: 100%; object-fit: contain; display: block; border-radius: 2px; }
+.mem { flex: 1; display: grid; grid-template-columns: 430px 1fr; gap: 26px; align-items: center; min-height: 0; }
+.polaroid { background: #fffdf8; padding: 12px 12px 34px; border-radius: 6px; box-shadow: 0 6px 18px rgba(80, 60, 30, .22); transform: rotate(-1.6deg); height: 380px; display: flex; align-items: center; justify-content: center; position: relative;
+  animation: polaroidIn .9s cubic-bezier(.2, .9, .25, 1.15) both; }
+.photo-wrap { max-width: 100%; max-height: 100%; overflow: hidden; border-radius: 2px; display: flex; }
+.polaroid img.photo { max-width: 100%; max-height: 346px; object-fit: contain; display: block; animation: kenBurns 6.5s ease-out both; transform-origin: 60% 40%; }
+/* Each new memory: the polaroid flies in, the photo slowly zooms, words follow, the sticker pops. */
+@keyframes polaroidIn { from { opacity: 0; transform: translateX(120px) rotate(9deg) scale(.92); } to { opacity: 1; transform: rotate(-1.6deg); } }
+@keyframes kenBurns { from { transform: scale(1); } to { transform: scale(1.09) translate(-1.5%, 1%); } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes pop { 0% { opacity: 0; transform: scale(.2) rotate(-25deg); } 70% { opacity: 1; transform: scale(1.18) rotate(6deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes leave { to { opacity: 0; transform: translateX(-110px) rotate(-7deg) scale(.94); } }
+@keyframes fill { from { width: 0; } to { width: 100%; } }
+.mem-when { animation: fadeUp .5s .35s ease both; }
+.mem-title { animation: fadeUp .5s .5s ease both; }
+.mem-caption { animation: fadeUp .6s .7s ease both; }
+.mem-stickers img { animation: pop .6s 1.1s cubic-bezier(.3, 1.4, .5, 1) both; }
+.mem-stickers img + img { animation-delay: 1.25s; }
+.mem.leaving .polaroid { animation: leave .5s ease-in both; }
+.mem.leaving .mem-text { animation: fadeUp .35s ease reverse both; }
+.mem-progress { height: 4px; border-radius: 4px; background: #e2d4b8; overflow: hidden; }
+.mem-progress span { display: block; height: 100%; background: #2f4a3a; animation: fill linear both; }
+@media (prefers-reduced-motion: reduce) { .mem *, .mem-progress span { animation: none !important; } }
 .polaroid .tape { position: absolute; top: -10px; left: 50%; width: 90px; height: 22px; margin-left: -45px; background: rgba(214, 196, 150, .75); transform: rotate(2deg); }
 .mem-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .mem-when { font-size: 16px; font-weight: 800; color: #7a6248; }
@@ -188,6 +206,12 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
   }
   let slide = 0;
   let slideTimer = 0;
+  const SLIDE_MS = 6000;
+  function nextSlide(page) {
+    clearTimeout(slideTimer);
+    page?.classList?.add('leaving');
+    slideTimer = setTimeout(() => { slide += 1; render(); }, page ? 480 : 0);
+  }
   function renderMemories(book) {
     const items = book.items || [];
     if (!items.length) return [el('p', 'empty', 'No memories yet.')];
@@ -199,10 +223,12 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
     const frame = el('div', 'polaroid');
     frame.append(el('span', 'tape'));
     if (item.photo) {
+      const wrap = el('div', 'photo-wrap');
       const img = el('img', 'photo');
       img.src = item.photo;
       img.alt = item.title;
-      frame.append(img);
+      wrap.append(img);
+      frame.append(wrap);
     } else if (item.stickers?.[0]) {
       const img = el('img', 'photo');
       img.src = item.stickers[0].data;
@@ -222,11 +248,20 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
     page.append(frame, words);
     const dots = el('div', 'mem-dots');
     items.forEach((_, index) => dots.append(el('span', index === slide ? 'on' : '')));
+    const nodes = [head, page];
     clearTimeout(slideTimer);
-    if (items.length > 1) slideTimer = setTimeout(() => { slide += 1; render(); }, 6000);
-    return [head, page, dots];
+    if (items.length > 1) {
+      const progress = el('div', 'mem-progress');
+      const bar = el('span');
+      bar.style.animationDuration = `${SLIDE_MS}ms`;
+      progress.append(bar);
+      nodes.push(progress);
+      slideTimer = setTimeout(() => nextSlide(page), SLIDE_MS);
+    }
+    nodes.push(dots);
+    return nodes;
   }
-  root.addEventListener('click', () => { if (data?.memories) { slide += 1; render(); } });
+  root.addEventListener('click', () => { if (data?.memories) nextSlide(root.querySelector?.('.mem')); });
   function render() {
     const value = data || {};
     const nodes = [];
