@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MCP Apps sandbox</title>
+<style>html,body,iframe{margin:0;width:100%;height:100%;border:0;background:transparent;overflow:hidden}</style>
+</head>
+<body>
+<script>
+// MCP Apps sandbox proxy for web hosts (spec 2026-01-26). Served from a
+// different origin than the host page. It renders the view's raw HTML in an
+// inner iframe with a strict CSP and relays every non-sandbox message.
+(() => {
+  'use strict';
+  const params = new URLSearchParams(location.search);
+  const host = params.get('host');
+  let hostOrigin;
+  try { hostOrigin = new URL(host).origin; } catch { return; }
+  const local = ['localhost', '127.0.0.1', '[::1]'];
+  if (!local.includes(new URL(hostOrigin).hostname) || new URL(hostOrigin).port !== location.port || hostOrigin === location.origin) return;
+  let view = null;
+  const list = (items) => (Array.isArray(items) ? items : []).filter((item) => /^https:\/\/[\w*.-]+(:\d+)?$/.test(item)).join(' ');
+  function policy(csp = {}) {
+    const resources = list(csp.resourceDomains);
+    return [
+      "default-src 'none'",
+      `script-src 'unsafe-inline' ${resources}`,
+      `style-src 'unsafe-inline' ${resources}`,
+      `img-src data: ${resources}`,
+      `font-src data: ${resources}`,
+      `media-src data: ${resources}`,
+      `connect-src ${list(csp.connectDomains) || "'none'"}`,
+      `frame-src ${list(csp.frameDomains) || "'none'"}`,
+      "base-uri 'self'",
+      "object-src 'none'",
+    ].join('; ');
+  }
+  window.addEventListener('message', (event) => {
+    const message = event.data;
+    if (!message || message.jsonrpc !== '2.0') return;
+    if (event.source === window.parent && event.origin === hostOrigin) {
+      if (message.method === 'ui/notifications/sandbox-resource-ready') {
+        const html = String(message.params?.html || '');
+        const meta = `<meta http-equiv="Content-Security-Policy" content="${policy(message.params?.csp).replace(/"/g, '&quot;')}">`;
+        view = document.createElement('iframe');
+        view.setAttribute('sandbox', 'allow-scripts');
+        view.setAttribute('title', 'Travel Folio card');
+        view.srcdoc = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (head) => head + meta) : meta + html;
+        document.body.replaceChildren(view);
+        return;
+      }
+      if (String(message.method || '').startsWith('ui/notifications/sandbox-')) return;
+      view?.contentWindow?.postMessage(message, '*');
+      return;
+    }
+    if (view && event.source === view.contentWindow) {
+      if (String(message.method || '').startsWith('ui/notifications/sandbox-')) return;
+      window.parent.postMessage(message, hostOrigin);
+    }
+  });
+  window.parent.postMessage({ jsonrpc: '2.0', method: 'ui/notifications/sandbox-proxy-ready', params: {} }, hostOrigin);
+})();
+</script>
+</body>
+</html>

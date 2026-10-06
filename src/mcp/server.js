@@ -6,6 +6,7 @@ import { ADDABLE_KINDS, CHANGE_TYPES, computeChange } from '../domain/changes.js
 import { publicProposal } from '../domain/store.js';
 import { assessRain, getDayForecast } from '../weather.js';
 import { handoff } from '../handoff.js';
+import { MCP_APP_MIME, TRIP_CARD_HTML, TRIP_CARD_META, TRIP_CARD_URI, withTripCard } from './apps.js';
 
 export const SERVER_INFO = { name: 'travel-folio', title: 'Travel Folio', version: '0.1.0' };
 
@@ -71,6 +72,7 @@ export function createTravelFolioServer(deps) {
       startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('YYYY-MM-DD. Defaults to tomorrow in the destination time zone.'),
     },
     annotations: { title: 'Create a trip', readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+    _meta: withTripCard,
   }, safe(async (args) => {
     const trip = store.setTrip(createTrip(args), 'Trip created');
     server.sendResourceListChanged();
@@ -84,6 +86,7 @@ export function createTravelFolioServer(deps) {
     description: 'Read the current trip, optionally for a single day. Includes stopIds needed by other tools.',
     inputSchema: { day: z.number().int().min(1).max(MAX_DAYS).optional() },
     annotations: { readOnlyHint: true, openWorldHint: false },
+    _meta: withTripCard,
   }, safe(async ({ day }) => {
     const trip = store.requireTrip();
     if (day != null && day > trip.days) throw new Error(`This trip has ${trip.days} day(s).`);
@@ -112,6 +115,7 @@ export function createTravelFolioServer(deps) {
     description: 'Hourly rain forecast for a trip day (Open-Meteo) and which outdoor or view stops are at risk. Use before suggesting a rain_swap.',
     inputSchema: { day: z.number().int().min(1).max(MAX_DAYS).default(1) },
     annotations: { readOnlyHint: true, openWorldHint: true },
+    _meta: withTripCard,
   }, safe(async ({ day }) => {
     const trip = store.requireTrip();
     if (day > trip.days) throw new Error(`This trip has ${trip.days} day(s).`);
@@ -125,6 +129,7 @@ export function createTravelFolioServer(deps) {
       : assessmentComplete ? `No significant rain is forecast for the planned outdoor stops on day ${day}.` : `The rain forecast is incomplete for day ${day}; some outdoor stops cannot be assessed.`;
     return result(`${text}${atRisk.length && !assessmentComplete ? ' Some outdoor stops also have missing forecast data.' : ''}`, {
       day, date: forecast.date, source: forecast.source, rainyWindow, atRisk, unknownStops, assessmentComplete,
+      stops: summarizeTrip(trip, day).days[0].stops,
       hourly: forecast.hours.filter((h) => h.hour >= 7 && h.hour <= 21),
       attribution: forecast.source === 'open-meteo' ? 'Weather data by Open-Meteo.com (CC BY 4.0)' : 'Demo weather fixture (not a real forecast)',
     });
@@ -167,6 +172,7 @@ remove_stop{stopId}; replace_stop{stopId[,kind|placeId]}. Locked or visited stop
       to: z.string().regex(/^\d{2}:\d{2}$/).optional(),
     },
     annotations: { readOnlyHint: true, openWorldHint: true },
+    _meta: withTripCard,
   }, safe(async (change) => {
     const trip = store.requireTrip();
     const ctx = {};
@@ -197,6 +203,7 @@ remove_stop{stopId}; replace_stop{stopId[,kind|placeId]}. Locked or visited stop
       userConfirmed: z.boolean().optional().describe('Only for clients without elicitation support'),
     },
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    _meta: withTripCard,
   }, safe(async ({ proposalId, userConfirmed }, extra) => {
     const proposal = store.getProposal(proposalId);
     const pub = publicProposal(proposal);
@@ -227,6 +234,7 @@ remove_stop{stopId}; replace_stop{stopId[,kind|placeId]}. Locked or visited stop
     description: 'Restore the trip as it was before the last applied change (or before the last create_trip).',
     inputSchema: {},
     annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    _meta: withTripCard,
   }, safe(async () => {
     const { trip, diff } = store.undo();
     return result(`Undone. "${trip.title}" is back to the previous version.`, { status: 'undone', diff, trip: summarizeTrip(trip) });
@@ -276,6 +284,13 @@ remove_stop{stopId}; replace_stop{stopId[,kind|placeId]}. Locked or visited stop
     if (!Number.isInteger(Number(day)) || Number(day) < 1 || Number(day) > trip.days) throw new Error(`This trip has ${trip.days} day(s).`);
     return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify(summarizeTrip(trip, Number(day)), null, 2) }] };
   });
+
+  server.registerResource('trip-card', TRIP_CARD_URI, {
+    title: 'Trip card',
+    description: 'MCP Apps view for itineraries, weather risk and proposed changes, sized for Echo Show.',
+    mimeType: MCP_APP_MIME,
+    _meta: TRIP_CARD_META,
+  }, async (uri) => ({ contents: [{ uri: uri.href, mimeType: MCP_APP_MIME, text: TRIP_CARD_HTML, _meta: TRIP_CARD_META }] }));
 
   // ---------------- prompts ----------------
   server.registerPrompt('morning_briefing', {

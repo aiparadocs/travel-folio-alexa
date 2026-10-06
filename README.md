@@ -119,6 +119,13 @@ The double-click demo launchers and `npm run share` intentionally use guided/dem
   alternatives?” Saying yes only prepares a proposal; applying it needs its own confirmation.
 - Every home trip tool runs through an actual MCP SDK client and Streamable HTTP
   endpoint. The SDK supports MCP 2025-11-25. Expand the activity details to inspect calls.
+- **MCP Apps for screens.** Six trip tools declare a `ui://` view
+  (`text/html;profile=mcp-app`, spec 2026-01-26), the extension Alexa+ uses to render
+  interactive cards on Echo Show. The view is one self-contained bundle (fonts inlined,
+  empty CSP allowlist) that follows the Alexa+ visual foundations: a 768x480 canvas,
+  one root zoom per device, the published type, spacing and card colours.
+  Open **Echo Show view** (top right) to see it: a small MCP Apps host renders the latest
+  card through a cross-origin sandbox proxy, the way a web host must, next to the spoken reply.
 - New trips and proposed changes wait for the human's exact confirmation. The AI
   tool allowlist cannot apply or undo a change itself.
 - Locked and visited stops are protected; stale/expired proposals cannot be applied;
@@ -144,6 +151,8 @@ Home browser → Express conversation controller
 Phone browser → IndexedDB / localStorage → standalone HTML or JSON backup
 ```
 
+`public/show.html` + `show.js` are the simulated Echo Show (an MCP Apps host) and
+`public/mcp-app/sandbox.html` its sandbox proxy; `src/mcp/trip-card.html` is the view.
 `public/index.html`, `home.css`, `home.js` are the home interface; `voice.js`
 controls microphone/read-aloud turns and lifecycle cleanup.
 `src/server.js` starts the server; `src/agent/` handles conversation, confirmation,

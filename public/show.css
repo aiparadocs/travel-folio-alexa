@@ -1,0 +1,20 @@
+:root { --bg: #0b0d10; --bezel: #050608; --screen: #0f1216; --ink: #f4f2ec; --muted: #a9b0bb; --accent: #9fd3a8; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: 'Nunito', system-ui, sans-serif; }
+.stage { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px; }
+/* Echo Show 8: 1280x800 panel = Alexa+'s 768x480 design canvas at zoom 1.667. */
+.device { width: min(100%, calc((100vh - 120px) * 1.6)); aspect-ratio: 1328 / 848; background: var(--bezel); border-radius: 28px; padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 0 0 1px #1d2229; }
+.screen { position: relative; width: 1280px; height: 800px; transform-origin: 0 0; background: var(--screen); border-radius: 6px; overflow: hidden; }
+.status { position: absolute; inset: 0 0 auto 0; display: flex; justify-content: space-between; padding: 18px 28px; font-size: 22px; color: var(--muted); font-weight: 700; z-index: 2; }
+.sim { background: rgba(255,255,255,.08); border-radius: 999px; padding: 4px 14px; }
+.idle { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.idle-time { margin: 0; font-size: 160px; font-weight: 300; letter-spacing: -.02em; }
+.idle-hint { margin: 0; font-size: 32px; color: var(--muted); }
+.view { position: absolute; inset: 66px 0 112px 0; display: flex; justify-content: center; align-items: center; }
+.view iframe { border: 0; background: transparent; }
+.caption { position: absolute; left: 0; right: 0; bottom: 0; height: 112px; padding: 14px 40px 0; z-index: 3; }
+.caption p { margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; max-height: 2.6em; overflow: hidden; }
+.bar { display: block; height: 6px; width: 180px; border-radius: 6px; background: linear-gradient(90deg, #6fbf87, var(--accent), #6fbf87); margin-bottom: 10px; }
+.note { max-width: 880px; margin: 0; font-size: 14px; color: var(--muted); text-align: center; line-height: 1.5; }
+.note a { color: var(--accent); }
+[hidden] { display: none !important; }

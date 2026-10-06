@@ -7,10 +7,15 @@ These results cover this integrated app, not the older standalone bundle's repor
 
 From this directory run `npm ci`, then `npm test`.
 
-**71 tests passed, 0 failed** (2026-10-06). This includes the original 38 checks,
-10 voice API, 18 voice-controller and 5 returning-visit checks. No cloud credentials
+**75 tests passed, 0 failed** (2026-10-06). This includes the original 38 checks,
+10 voice API, 18 voice-controller, 5 returning-visit and 4 MCP Apps checks. No cloud credentials
 or model charges are required.
 
+- 4 MCP Apps tests (`test/apps.test.js`): tool `_meta.ui.resourceUri` links, listed and
+  readable `ui://` view with the MCP Apps MIME type and empty CSP allowlist, a bundle with
+  no external requests, the real view script's `ui/initialize` handshake, Alexa+ root zoom,
+  proposal/weather rendering and rejection of messages not from the host, and the HTTP host
+  (latest card in state, resource endpoint, sandbox `frame-ancestors`, other pages `DENY`).
 - 5 returning-visit tests (`test/memory.test.js`): a saved plan survives a real server
   restart and is re-read through MCP; one proactive greeting per return; before, during
   and after the trip wording; "yes" to the offer only prepares a proposal; "no" and a
@@ -41,6 +46,12 @@ Bedrock tests inject model responses. They verify the adapter and confirmation
 boundaries, not AWS permissions, model availability or answer quality.
 
 ## Browser checks
+
+2026-10-06: the Echo Show view was rendered in headless Chromium 134 for an itinerary,
+weather risk, a proposed indoor swap and an applied change, through the real sandbox proxy
+(`localhost` ↔ `127.0.0.1`). Screenshots were inspected; no console errors after fixing a
+`frame-ancestors` source. The Alexa+ Local Inspector is not publicly available, so the
+view has not been checked against Alexa's own rules or devices.
 
 2026-10-06: the returning-visit flow was checked manually in Chromium after a real
 server restart: restored itinerary, welcome-back message, suggestion button, resulting

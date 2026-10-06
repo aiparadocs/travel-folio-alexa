@@ -116,6 +116,7 @@ export class ConversationSession {
     this.handoffCreatedThisTurn = false;
     this.briefingDue = false;
     this.suggestion = null;
+    this.app = null;
   }
   /** Rebuild the conversation view from a plan saved on an earlier visit. */
   async restore() {
@@ -174,6 +175,7 @@ export class ConversationSession {
       trip: this.trip, proposal: this.proposal, handoff: this.handoff, weather: this.weather,
       config: this.config, messages: this.messages, trace: this.trace,
       briefingDue: this.briefingDue && !!this.trip, suggestion: this.proposal ? null : this.suggestion,
+      app: this.app,
       ...(reply !== undefined ? { reply } : {}),
     };
   }
@@ -201,6 +203,7 @@ export class ConversationSession {
     if (name === 'check_weather') this.weather = result.data;
     if (name === 'send_to_phone') { this.handoff = result.data; this.handoffCreatedThisTurn = true; }
     if (result.data.proposal) this.proposal = { ...result.data.proposal, kind: 'change' };
+    if (result.ui) this.app = { ...result.ui, id: randomUUID() };
     return result;
   }
   prepareCreate(input) {

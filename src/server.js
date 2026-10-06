@@ -70,7 +70,9 @@ export async function startServer(options = {}) {
   app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
-    res.setHeader('X-Frame-Options', 'DENY');
+    // The MCP Apps sandbox proxy may only be framed by this app's own pages.
+    if (req.path === '/mcp-app/sandbox.html') res.setHeader('Content-Security-Policy', `frame-ancestors ${['localhost', '127.0.0.1'].map((name) => `http://${name}:${actualPort}`).join(' ')}`);
+    else res.setHeader('X-Frame-Options', 'DENY');
     const allowed = new Set([`localhost:${actualPort}`, `127.0.0.1:${actualPort}`, `[::1]:${actualPort}`, ...addresses.map((ip) => `${ip}:${actualPort}`), ...(publicUrl ? [publicUrl.host] : [])]);
     if (!allowed.has(req.headers.host?.toLowerCase())) return res.status(403).json({ error: 'Use the local app URL or configured public URL.' });
     if (req.headers.origin && req.headers.origin !== `${req.protocol}://${req.headers.host}` && req.headers.origin !== publicUrl?.origin) return res.status(403).json({ error: 'Cross-origin requests are not allowed.' });
@@ -131,6 +133,14 @@ export async function startServer(options = {}) {
     if (body.proposalId !== undefined && body.proposalId !== null && (typeof body.proposalId !== 'string' || body.proposalId.length > 80)) throw new UserError('Invalid voice proposal reference.');
     return session.chat(body.message.trim(), { inputMode: body.inputMode, language: body.language, proposalId: body.proposalId });
   }));
+  app.get('/api/app-view', async (req, res, next) => {
+    try {
+      const uri = String(req.query.uri || '');
+      if (!/^ui:\/\/travel-folio\/[\w.-]{1,80}$/.test(uri)) throw new UserError('Unknown card.', 404);
+      const view = await req.folio.tools.appResource(uri);
+      res.json({ uri, html: view.html, csp: view.csp });
+    } catch (error) { next(error); }
+  });
   app.use('/api', (req, res) => res.status(404).json({ error: 'Unknown API endpoint.' }));
   app.use(express.static(path.join(HERE, '..', 'public'), { dotfiles: 'deny', etag: true }));
   app.use((err, req, res, next) => {

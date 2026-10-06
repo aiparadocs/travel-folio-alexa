@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b0d10">
+  <title>Travel Folio · Echo Show view (simulated)</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233c5a47'/%3E%3Cpath d='M7 7h7l2 2 2-2h7v18h-7l-2 2-2-2H7zM16 9v18' fill='none' stroke='%23fffefa' stroke-width='1.8'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <link rel="stylesheet" href="/show.css">
+  <script src="/show.js" defer></script>
+</head>
+<body>
+  <main class="stage">
+    <div class="device" id="device" aria-label="Simulated Echo Show 8 screen">
+      <div class="screen" id="screen">
+        <div class="status"><span class="sim">Alexa+ simulation · Echo Show 8</span><span id="clock"></span></div>
+        <div class="idle" id="idle">
+          <p class="idle-time" id="idle-time"></p>
+          <p class="idle-hint">Try “Plan two easy days in Kyoto, with coffee.”</p>
+        </div>
+        <div class="view" id="view" hidden></div>
+        <div class="caption" id="caption" hidden><span class="bar" aria-hidden="true"></span><p id="caption-text"></p></div>
+      </div>
+    </div>
+    <p class="note">This screen mirrors the trip you are planning in <a href="/" target="_blank" rel="noopener">Travel Folio</a>. Cards are MCP Apps views returned by the Travel Folio MCP server and rendered here the way an Alexa+ device would show them. Not a real Echo device.</p>
+  </main>
+</body>
+</html>

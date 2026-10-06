@@ -313,3 +313,5 @@ img { max-width: 100%; }
   html { scroll-behavior: auto; }
   *,*:before,*:after { transition: none !important; animation: none !important; }
 }
+
+.top-links { display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: flex-end; }

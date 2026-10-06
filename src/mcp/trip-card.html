@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Travel Folio trip card</title>
+<style>
+/*__FONTS__*/
+/* Alexa+ visual foundations: 768x480 base canvas, one root zoom per device. */
+:root {
+  --card: #14181E; --card-inner: #1B2028; --ink: #F4F2EC; --muted: #A9B0BB; --line: #2A313C;
+  --accent: #9FD3A8; --accent-ink: #10261A; --rain: #8EC5FF; --warn: #F2B880; --del: #E59A9A;
+  --button: #2D415E;
+  --hand: 'Caveat', 'Segoe Print', cursive; --body: 'Nunito', system-ui, sans-serif;
+}
+:root[data-theme="light"] {
+  --card: #FFFFFF; --card-inner: #FAF9FB; --ink: #1E2329; --muted: #5C6470; --line: #E3E1EA;
+  --accent: #3C5A47; --accent-ink: #FFFFFF; --rain: #2D6CB5; --warn: #9A5A12; --del: #A33A3A; --button: #E8EEF5;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: transparent; }
+body { font-family: var(--body); color: var(--ink); -webkit-font-smoothing: antialiased; }
+#root { width: 768px; height: 480px; background: var(--card); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.eyebrow { font-size: 14px; color: var(--muted); font-weight: 700; letter-spacing: .02em; }
+h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40px; line-height: 1; }
+.days { display: flex; gap: 8px; }
+.days button { font: inherit; font-size: 16px; font-weight: 700; color: var(--ink); background: var(--card-inner); border: 1px solid var(--line); border-radius: 9999px; padding: 8px 16px; min-height: 44px; cursor: pointer; }
+.days button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.banner { display: flex; align-items: center; gap: 12px; background: var(--card-inner); border-radius: 12px; padding: 12px 16px; font-size: 18px; font-weight: 700; }
+.banner small { display: block; font-size: 14px; color: var(--muted); font-weight: 600; }
+.banner .badge { margin-left: auto; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 9999px; padding: 4px 10px; white-space: nowrap; }
+.rain { color: var(--rain); }
+.row { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; flex: 1 1 auto; min-height: 148px; max-height: 220px; }
+.row::-webkit-scrollbar { display: none; }
+.stop { flex: 0 0 196px; background: var(--card-inner); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; border: 2px solid transparent; }
+.stop.risk { border-color: var(--rain); }
+.stop.done { opacity: .55; }
+.time { font-size: 20px; font-weight: 800; }
+.title { font-family: var(--hand); font-size: 26px; line-height: 1.05; font-weight: 700; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.meta { font-size: 14px; color: var(--muted); font-weight: 600; margin-top: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars { display: flex; align-items: flex-end; gap: 4px; height: 40px; }
+.bars span { flex: 1; background: var(--rain); border-radius: 4px 4px 0 0; min-height: 3px; opacity: .85; }
+.hours { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.changes { display: grid; gap: 8px; }
+.change { display: grid; grid-template-columns: 76px 1fr; gap: 4px 12px; align-items: baseline; background: var(--card-inner); border-radius: 12px; padding: 12px 16px; }
+.change .op { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.change del { color: var(--del); font-size: 16px; grid-column: 2; }
+.change ins { text-decoration: none; font-size: 20px; font-weight: 800; grid-column: 2; }
+.footer { display: flex; align-items: center; gap: 12px; margin-top: auto; font-size: 16px; color: var(--muted); font-weight: 600; }
+.pill { background: var(--button); color: var(--ink); border-radius: 9999px; padding: 8px 16px; font-weight: 800; }
+.hints { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+.hints span { font-size: 16px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 9999px; padding: 6px 14px; }
+.ok { color: var(--accent); }
+.empty { font-size: 20px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div id="root" aria-live="polite"><p class="empty">Getting your trip…</p></div>
+<script>
+(() => {
+  'use strict';
+  const root = document.getElementById('root');
+  const pending = new Map();
+  let nextId = 1;
+  let data = null;
+  let day = 1;
+
+  // ---- MCP Apps bridge (JSON-RPC 2.0 over postMessage, spec 2026-01-26) ----
+  const send = (message) => window.parent.postMessage({ jsonrpc: '2.0', ...message }, '*');
+  const request = (method, params) => new Promise((resolve, reject) => {
+    const id = nextId++;
+    pending.set(id, { resolve, reject });
+    send({ id, method, params });
+  });
+  window.addEventListener('message', (event) => {
+    if (event.source !== window.parent) return;
+    const message = event.data;
+    if (!message || message.jsonrpc !== '2.0') return;
+    if (message.id != null && pending.has(message.id) && !message.method) {
+      const { resolve, reject } = pending.get(message.id);
+      pending.delete(message.id);
+      return message.error ? reject(message.error) : resolve(message.result);
+    }
+    if (message.method === 'ui/notifications/tool-result') { data = message.params?.structuredContent || null; day = pickDay(data); render(); }
+    if (message.method === 'ui/notifications/host-context-changed') applyContext(message.params);
+    if (message.method === 'ui/resource-teardown' && message.id != null) send({ id: message.id, result: {} });
+  });
+  function applyContext(context = {}) {
+    if (context.theme) document.documentElement.dataset.theme = context.theme;
+    const width = context.containerDimensions?.width ?? context.containerDimensions?.maxWidth;
+    // Alexa+ guidance: apply a single root scale (Echo Show 8/15: 1.667).
+    if (width) document.documentElement.style.zoom = String(Math.round((width / 768) * 1000) / 1000);
+  }
+  new ResizeObserver(() => {
+    const box = root.getBoundingClientRect();
+    const zoom = Number(document.documentElement.style.zoom) || 1;
+    send({ method: 'ui/notifications/size-changed', params: { width: Math.ceil(box.width * zoom), height: Math.ceil(box.height * zoom) } });
+  }).observe(root);
+  request('ui/initialize', {
+    protocolVersion: '2026-01-26',
+    appInfo: { name: 'travel-folio-trip-card', version: '1.0.0' },
+    appCapabilities: { availableDisplayModes: ['inline', 'fullscreen'] },
+  }).then((result) => {
+    applyContext(result?.hostContext);
+    send({ method: 'ui/notifications/initialized', params: {} });
+  }).catch(() => { root.replaceChildren(el('p', 'empty', 'This card could not connect to Alexa.')); });
+
+  // ---- rendering ----
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = String(text);
+    return node;
+  }
+  const kinds = { coffee: 'Coffee', food: 'Food', walk: 'Outdoors', shop: 'Shops', indoor: 'Indoors' };
+  const dateLabel = (iso) => new Intl.DateTimeFormat('en', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`));
+  function pickDay(value) {
+    const changed = value?.proposal?.diff || value?.diff;
+    if (changed?.length) return changed[0].day || 1;
+    return value?.day || day || 1;
+  }
+  function header(eyebrow, title, trip) {
+    const head = el('header');
+    const left = el('div');
+    left.append(el('div', 'eyebrow', eyebrow), el('h1', '', title));
+    head.append(left);
+    if (trip?.days?.length > 1) {
+      const tabs = el('div', 'days');
+      for (const entry of trip.days) {
+        const button = el('button', '', `Day ${entry.day}`);
+        button.type = 'button';
+        button.setAttribute('aria-pressed', String(entry.day === day));
+        button.addEventListener('click', () => { day = entry.day; render(); });
+        tabs.append(button);
+      }
+      head.append(tabs);
+    }
+    return head;
+  }
+  const dayStops = (trip) => (trip?.days?.find((item) => item.day === day) || trip?.days?.[0])?.stops || [];
+  function stops(list, riskIds = new Set()) {
+    const row = el('div', 'row');
+    for (const stop of list) {
+      const card = el('div', `stop${riskIds.has(stop.stopId) ? ' risk' : ''}${stop.done ? ' done' : ''}`);
+      card.append(el('div', 'time', stop.time), el('div', 'title', stop.title), el('div', 'meta', `${kinds[stop.kind] || 'Stop'} · ${stop.minutes} min${riskIds.has(stop.stopId) ? ' · rain' : ''}${stop.done ? ' · visited' : ''}`));
+      row.append(card);
+    }
+    return row;
+  }
+  function hints(items) {
+    const row = el('div', 'hints');
+    row.append(el('span', '', 'Try saying'), ...items.map((text) => el('span', '', text)));
+    row.firstChild.style.border = '0';
+    return row;
+  }
+  function changeList(diff) {
+    const list = el('div', 'changes');
+    const main = diff.filter((item) => item.op !== 'moved');
+    const moved = diff.length - main.length;
+    for (const item of main.slice(0, 3)) {
+      const row = el('div', 'change');
+      row.append(el('span', 'op', `Day ${item.day} · ${item.op}`));
+      if (item.before) row.append(el('del', '', `${item.before.time} ${item.before.title}`));
+      if (item.after) row.append(el('ins', '', `${item.after.time} ${item.after.title}`));
+      list.append(row);
+    }
+    if (moved) list.append(el('div', 'meta', `${moved} later stop${moved === 1 ? '' : 's'} adjusted to fit.`));
+    return list;
+  }
+  function render() {
+    const value = data || {};
+    const nodes = [];
+    if (value.proposal) {
+      nodes.push(header('Alexa suggests', 'A change of plan'), el('div', 'banner', value.proposal.summary), changeList(value.proposal.diff || []));
+      const foot = el('div', 'footer');
+      foot.append(el('span', 'pill', 'Say “yes” to apply'), el('span', '', 'Nothing changes until you confirm.'));
+      nodes.push(foot);
+    } else if (value.status === 'applied' || value.status === 'undone') {
+      nodes.push(header(value.status === 'applied' ? 'Updated' : 'Back to the previous plan', value.trip?.title || 'Your trip', value.trip));
+      const banner = el('div', 'banner');
+      banner.append(el('span', 'ok', '✓'), el('span', '', value.status === 'applied' ? 'Your plan is updated. Undo is always available.' : 'I restored your previous plan.'));
+      nodes.push(banner, stops(dayStops(value.trip)), hints(['“Undo”', '“Take it to my phone”']));
+    } else if (value.source && 'atRisk' in value) {
+      const ids = new Set((value.atRisk || []).map((item) => item.stopId));
+      nodes.push(header(`Day ${value.day} · ${value.date ? dateLabel(value.date) : ''}`, ids.size ? 'Rain on the way' : 'Looking dry'));
+      const banner = el('div', 'banner');
+      const text = el('div');
+      text.append(el('span', ids.size ? 'rain' : 'ok', ids.size ? `Rain likely ${value.rainyWindow ? `${value.rainyWindow.from}–${value.rainyWindow.to}` : ''}` : 'No significant rain for outdoor stops'));
+      text.append(el('small', '', ids.size ? `${ids.size} outdoor stop${ids.size === 1 ? '' : 's'} affected. Ask me for indoor alternatives.` : value.assessmentComplete === false ? 'Some hours have no forecast.' : 'Enjoy the day.'));
+      banner.append(text, el('span', 'badge', value.source === 'demo' ? 'Sample weather' : value.source === 'open-meteo' ? 'Open-Meteo' : 'Unavailable'));
+      nodes.push(banner);
+      const hours = (value.hourly || []).filter((item) => item.hour >= 8 && item.hour <= 20);
+      if (hours.length) {
+        const bars = el('div', 'bars');
+        for (const item of hours) { const bar = el('span'); bar.style.height = `${Math.max(4, item.precipitationProbability ?? 0)}%`; bar.title = `${item.hour}:00 ${item.precipitationProbability ?? '?'}%`; bars.append(bar); }
+        const labels = el('div', 'hours');
+        labels.append(el('span', '', '8:00'), el('span', '', '14:00'), el('span', '', '20:00'));
+        nodes.push(bars, labels);
+      }
+      if (value.stops?.length) nodes.push(stops(value.stops, ids));
+    } else if (value.trip) {
+      const trip = value.trip;
+      const first = trip.days?.[0]?.date;
+      nodes.push(header(`${trip.city === 'seattle' ? 'Seattle' : 'Kyoto'} · ${first ? dateLabel(first) : ''} · ${trip.pace || ''}`, trip.title, trip), stops(dayStops(trip)), hints(['“What’s the weather?”', '“Add a coffee stop”', '“Take it to my phone”']));
+    } else {
+      nodes.push(el('p', 'empty', 'Ask Alexa to plan a trip.'));
+    }
+    root.replaceChildren(...nodes);
+  }
+})();
+</script>
+</body>
+</html>
