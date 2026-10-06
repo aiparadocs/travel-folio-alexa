@@ -1,0 +1,26 @@
+{
+  "name": "travel-folio-alexa",
+  "version": "0.1.0",
+  "description": "Travel Folio: an Alexa+ travel companion built as a self-hosted MCP server (Streamable HTTP, spec 2025-11-25) with an Echo Show-style simulator.",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "start": "node src/server.js",
+    "demo": "node scripts/launch.js",
+    "share": "node scripts/launch.js --share",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.1146.0",
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "express": "^5.2.1",
+    "qrcode": "^1.5.4",
+    "zod": "^4.6.5"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

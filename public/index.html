@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f3f2ec">
+  <meta name="description" content="Talk through a little trip. Take the plan to your phone. Keep the moments that stay with you.">
+  <title>Travel Folio · Start at home</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233c5a47'/%3E%3Cpath d='M7 7h7l2 2 2-2h7v18h-7l-2 2-2-2H7zM16 9v18' fill='none' stroke='%23fffefa' stroke-width='1.8'/%3E%3C/svg%3E">
+  <link rel="preload" href="/fonts/caveat-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/nunito-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts/fonts.css">
+  <link rel="stylesheet" href="/home.css">
+  <script src="/voice.js" defer></script>
+  <script src="/home.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#planner">Skip to trip planner</a>
+  <svg class="svg-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3 4h6l3 2 3-2h6v15h-6l-3 2-3-2H3zM12 6v15"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20 15a3 3 0 0 1-3 3H8l-5 3V6a3 3 0 0 1 3-3h11a3 3 0 0 1 3 3zM7 8h9M7 12h6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-coffee" viewBox="0 0 24 24"><path d="M5 8h12v7a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5zm12 1h2a3 3 0 0 1 0 6h-2M3 22h16M8 2v2m5-2v2"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 24 24"><path d="M7 15H6a4 4 0 1 1 0-8 6 6 0 0 1 11-1 4.5 4.5 0 1 1 1 9h-1M8 18l-1 3m6-3-1 3m6-3-1 3"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M3 7h5l2-3h4l2 3h5v13H3z"/><circle cx="12" cy="13" r="4"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 5h4m-3 14h2"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="m8 3-5 5 5 5M3 8h11a7 7 0 0 1 0 14h-2"/></symbol>
+    <symbol id="i-house" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8M5 10v11h14V10M10 21v-7h4v7"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  </defs></svg>
+
+  <header class="topbar"><div class="top-inner">
+    <a href="/" class="brand"><svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>Travel Folio<span class="brand-dot" aria-hidden="true"></span></a>
+    <a class="journal-link" href="/phone/">My journal <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </div></header>
+
+  <main class="page">
+    <section class="intro" aria-labelledby="page-title">
+      <div class="intro-copy"><h1 id="page-title">Good trips start<br>with a <span>chat.</span></h1></div>
+      <ol class="journey" aria-label="Plan your trip, take it to your phone, keep your memories">
+        <li class="current"><span class="step-icon"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg></span><strong>Plan</strong></li>
+        <li><span class="step-icon"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg></span><strong>Go</strong></li>
+        <li><span class="step-icon"><svg class="icon" aria-hidden="true"><use href="#i-camera"/></svg></span><strong>Keep</strong></li>
+      </ol>
+    </section>
+
+    <div class="experience-label"><span class="simulation-badge">Alexa+ simulation</span><span id="mode-label">Connecting…</span></div>
+    <div id="connection-error" class="error-banner" role="alert" hidden><p id="connection-message"></p><button class="button soft" type="button" id="retry-load">Try again</button></div>
+    <div class="workspace">
+      <section class="planner" id="planner" aria-labelledby="planner-title" tabindex="-1">
+        <div class="section-heading"><h2 id="planner-title">Where to?</h2><span class="planner-spark" aria-hidden="true">✳</span></div>
+        <section class="voice-panel" aria-label="Plan by voice">
+          <div class="voice-language-row"><label for="voice-language">Speak in</label><select id="voice-language" aria-label="Conversation language"><option value="en-US" selected>English</option><option value="ja-JP">日本語</option></select></div>
+          <button type="button" class="button primary voice-start" id="voice-toggle" aria-pressed="false" aria-describedby="voice-help" disabled><svg class="icon" aria-hidden="true"><use href="#i-mic"/></svg><span id="voice-toggle-label">Start conversation</span></button>
+          <p id="voice-status" class="voice-status" role="status" aria-live="polite">Checking microphone…</p>
+          <p id="voice-transcript" class="voice-transcript" hidden></p>
+          <p class="voice-example" id="voice-example">“Two easy days in Kyoto, with coffee.”</p>
+          <p id="voice-help" class="voice-help">Words send automatically. <br>Audio may be processed online.</p>
+        </section>
+
+        <div class="conversation-heading" id="conversation-heading" hidden><h3>Your conversation</h3></div>
+        <div id="conversation" class="conversation" role="log" aria-label="Planning conversation" aria-live="polite" aria-relevant="additions text" hidden></div>
+
+        <button class="text-button type-toggle" type="button" id="type-toggle" aria-expanded="false" aria-controls="type-panel">Type instead <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        <div id="type-panel" class="type-panel" hidden>
+          <form id="chat-form" class="chat-form"><label class="sr-only" for="message">Your message</label><textarea id="message" maxlength="1000" rows="2" placeholder="Where would you like to go?" disabled></textarea><div class="compose-tools"><button id="microphone" type="button" class="mic-button" hidden><svg class="icon" aria-hidden="true"><use href="#i-mic"/></svg><span>Dictate</span></button><span id="text-input-hint">Your message</span><button id="send-message" class="send-button" type="submit" aria-label="Send message" disabled><svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button></div></form>
+          <p id="speech-status" class="speech-status" role="status"></p>
+          <label class="read-aloud" id="read-aloud-control" hidden><input type="checkbox" id="read-aloud">Read replies aloud</label>
+          <p class="voice-note" id="voice-note" hidden>Audio may be processed online.</p>
+        </div>
+
+        <details id="trip-options" class="trip-options"><summary><span id="trip-options-label">Choose the details yourself</span></summary>
+          <form id="trip-form"><fieldset id="trip-fields" disabled>
+            <div class="form-row"><label class="field"><span>Destination</span><select id="city" name="city"><option value="kyoto">Kyoto, Japan</option><option value="seattle">Seattle, USA</option></select></label><label class="field"><span>Length</span><select id="days" name="days"><option value="1">1 day</option><option value="2" selected>2 days</option><option value="3">3 days</option><option value="4">4 days</option></select></label></div>
+            <fieldset class="interests"><legend>Your kind of trip</legend><div class="interest-options">
+              <label><input type="checkbox" name="interests" value="coffee" checked><span>Coffee</span></label><label><input type="checkbox" name="interests" value="culture" checked><span>Culture</span></label><label><input type="checkbox" name="interests" value="food"><span>Food</span></label><label><input type="checkbox" name="interests" value="nature"><span>Nature</span></label><label><input type="checkbox" name="interests" value="views"><span>Views</span></label><label><input type="checkbox" name="interests" value="shopping"><span>Shops</span></label><label><input type="checkbox" name="interests" value="family"><span>Family</span></label>
+            </div></fieldset>
+            <details class="extra-options"><summary>Dates &amp; pace <span id="date-pace-summary">Tomorrow · Easy days</span></summary><label class="field"><span>Start date</span><input id="start-date" name="startDate" type="date" aria-describedby="date-help"></label><p class="field-help" id="date-help">Blank = tomorrow at your destination.</p><label class="field"><span>Pace</span><select name="pace" id="pace"><option value="relaxed">Easy days</option><option value="balanced">A little of everything</option><option value="packed">See it all</option></select></label></details>
+            <button type="submit" class="button primary full" id="create-button">Make my plan <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </fieldset></form>
+        </details>
+      </section>
+
+      <section class="folio" aria-labelledby="itinerary-title" aria-busy="true">
+        <header class="folio-header"><div><h2 id="itinerary-title">Your itinerary</h2><p id="trip-subtitle" hidden></p></div><span class="folio-emblem" aria-hidden="true"><svg class="icon"><use href="#i-book"/></svg></span></header>
+        <section class="proposal" id="proposal" aria-labelledby="proposal-title" tabindex="-1" hidden><h3 id="proposal-title">Ready to go?</h3><p id="proposal-summary"></p><div id="proposal-details"></div><ul id="proposal-diff" class="proposal-diff"></ul><ul id="proposal-warnings" class="proposal-warnings"></ul><div class="proposal-actions"><button type="button" class="button primary" id="confirm-proposal">Use this plan</button><button type="button" class="button soft" id="decline-proposal">Not yet</button></div></section>
+        <div class="empty-state" id="empty-state">
+          <div class="postcard" aria-hidden="true"><span class="postcard-label">GOOD DAYS AHEAD</span><svg viewBox="0 0 320 150" class="landscape"><rect width="320" height="150" fill="#e3ebd7"/><circle cx="249" cy="40" r="21" fill="#e8ad6e"/><path d="M0 143 90 24 192 148Z" fill="#99b194"/><path d="m76 43 14-19 26 32-17-5-9 8Z" fill="#fdfaf1"/><path d="m132 150 80-97 108 97" fill="#bdcdaa"/><path d="M0 127q80-25 163 12t157-5v16H0" fill="#688b70"/><path d="M140 150c-4-17 49-27 44-46s-35-19-23-36" fill="none" stroke="#fffaf0" stroke-width="9"/></svg><span class="postcard-caption">a little room for adventure</span></div>
+          <h3>Somewhere good awaits.</h3>
+          <div class="destination-tags" aria-label="Available destinations"><span>Kyoto</span><span>Seattle</span></div>
+        </div>
+        <div id="trip-content" hidden>
+          <div class="day-navigation" id="day-navigation" role="group" aria-label="Choose a day"></div>
+          <div id="weather-card" class="weather-card" hidden></div>
+          <ol id="stop-list" class="stop-list" aria-label="Planned stops"></ol>
+          <p class="plan-note">Estimated times. Check opening hours before you go.</p>
+          <section class="adjustments" aria-labelledby="adjust-title"><div class="adjust-heading"><h3 id="adjust-title">Make it yours</h3><span id="adjust-day">Day 1</span></div><div class="action-chips"><button data-action="weather" type="button"><svg class="icon" aria-hidden="true"><use href="#i-rain"/></svg>Weather</button><button data-action="rain_swap" type="button"><svg class="icon" aria-hidden="true"><use href="#i-house"/></svg>Go indoors</button><button data-action="delay" type="button"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>30 min later</button><button data-action="coffee" type="button"><svg class="icon" aria-hidden="true"><use href="#i-coffee"/></svg>Add coffee</button></div><div class="small-actions"><button type="button" class="text-button" data-action="undo"><svg class="icon" aria-hidden="true"><use href="#i-undo"/></svg>Undo</button><button type="button" class="text-button" data-action="next">What’s next? <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button></div></section>
+          <div class="takeaway"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg><button type="button" class="button primary" data-action="handoff">Take to my phone <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        </div>
+        <p id="action-status" class="action-status" role="status"></p><p id="action-error" class="action-error" role="alert" hidden></p>
+      </section>
+    </div>
+
+    <details id="how-it-works" class="how-it-works"><summary>About this demo</summary><div class="about-columns"><div><h2>Alexa+ simulation</h2><p>This is a web simulation, with no Echo connection. Trip planning and the journal work for real.</p><p id="mode-description"></p><p id="weather-description"></p><p>Your home plan lasts while the server is running. The phone receives a separate copy; later edits do not sync. Photos and memories stay in that browser. Export the journal to keep a backup.</p></div><div><h2>Voice &amp; privacy</h2><p>Press Start conversation and allow the microphone. Wait for each reply, then say yes to confirm the proposal. Say “stop” or press End conversation to finish. There is no wake-word listening.</p><p>Your browser may process speech online. Text and manual planning remain available.</p><p id="chat-mode">Guided conversation</p><details class="trace-details"><summary>Tool activity</summary><pre id="tool-trace">No travel tools called yet.</pre></details></div></div></details>
+  </main>
+
+  <dialog id="handoff-dialog" class="handoff-dialog" aria-labelledby="handoff-title"><div class="dialog-header"><h2 id="handoff-title">Take your trip.</h2><button class="icon-button" type="button" id="close-handoff" aria-label="Close phone transfer"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button></div><p id="handoff-intro">Scan to open your journal.</p><div id="qr-container" class="qr-container"></div><p id="handoff-network" class="handoff-network"></p><a id="open-journal" class="button primary full" target="_blank" rel="noopener noreferrer">Open journal <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a><button id="copy-link" class="text-button" type="button">Copy link</button><label id="copy-fallback-label" class="field" hidden><span>Select and copy</span><textarea id="copy-fallback" readonly rows="3"></textarea></label><p id="copy-status" role="status" class="small"></p><p class="handoff-footnote">A copy of your itinerary. Add photos and memories in the journal.</p></dialog>
+</body>
+</html>
