@@ -1,7 +1,8 @@
 # Travel Folio
 
-**Plan a little. Keep a lot.** Plan a trip at home, take it to your phone, and turn
-the same itinerary into a scrapbook with photos, words, and 32 travel stickers.
+**Plan a little. Keep a lot.** Plan a trip at home, take it to your phone, turn the
+same itinerary into a scrapbook with photos, words and 32 travel stickers, then relive
+it together on the (simulated) Echo Show.
 
 This is a **simulated Alexa+ experience** with a working self-hosted MCP backend.
 The default uses a small guided conversation engine and clearly labelled sample
@@ -31,6 +32,16 @@ a standalone HTML copy.
 or one day. A compact trip fits one sheet; longer content continues onto additional
 pages without dropping notes, captions, photos or stickers. The preview reports
 the page count. This layout also works in exported standalone journals.
+
+## Relive the trip on Echo Show
+
+After the trip, open **Save & take → Show memories on Echo Show** in the phone journal.
+This appears only in a journal opened from this home's QR link (the link pairs the phone
+with the home). The phone asks first, then sends photos, captions and stickers to this
+computer over the local network. Private trip notes, packing lists and planning notes are
+never sent. At home, Travel Folio greets you ("3 memories from your phone just arrived")
+and **Show our memories** (or 「思い出を見せて」) plays them as a slideshow card on the
+Echo Show view. Sharing again replaces the set; saved sets live in `data/homes/`.
 
 ## Open it on a phone
 
@@ -119,7 +130,7 @@ The double-click demo launchers and `npm run share` intentionally use guided/dem
   alternatives?” Saying yes only prepares a proposal; applying it needs its own confirmation.
 - Every home trip tool runs through an actual MCP SDK client and Streamable HTTP
   endpoint. The SDK supports MCP 2025-11-25. Expand the activity details to inspect calls.
-- **MCP Apps for screens.** Seven trip tools declare a `ui://` view
+- **MCP Apps for screens.** Eight trip tools declare a `ui://` view
   (`text/html;profile=mcp-app`, spec 2026-01-26), the extension Alexa+ uses to render
   interactive cards on Echo Show. The view is one self-contained bundle (fonts inlined,
   empty CSP allowlist) that follows the Alexa+ visual foundations: a 768x480 canvas,
@@ -132,6 +143,9 @@ The double-click demo launchers and `npm run share` intentionally use guided/dem
   Undo restores the previous home itinerary.
 - Open-Meteo integration or reproducible sample weather, with failures/unknown data
   represented explicitly. Weather-based changes are not made from unavailable forecasts.
+- Memories shared back from a paired phone, validated and size-capped, shown by the
+  `show_memories` MCP tool as a scrapbook slideshow card. A model in Bedrock mode only
+  receives titles and words, never image data.
 - Compressed itinerary links and locally generated QR images. Photos, captions,
   stickers, visit status and private notes are excluded from transfers.
 - The existing phone journal: manual editing, real browser persistence, photo resizing,

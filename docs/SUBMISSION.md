@@ -9,8 +9,8 @@ Travel Folio
 
 ## Elevator pitch (max 200 characters)
 
-Plan a trip with Alexa at home, carry the same plan on your phone, and keep it as a
-scrapbook. Alexa remembers your trip, watches the weather, and never changes a plan without your yes.
+Plan with Alexa at home, turn the trip into a scrapbook on your phone, then relive it
+together on the Echo Show. Alexa remembers, watches the weather, and never changes a plan without your yes.
 
 ## Track and challenges
 
@@ -21,19 +21,27 @@ scrapbook. Alexa remembers your trip, watches the weather, and never changes a p
 
 ### Inspiration
 
-Trips are planned in three places that never talk to each other. The idea starts at home,
-often around a kitchen screen. The plan lives on a phone. The memories end up scattered
-in a camera roll. And when the weather turns, every plan has to be rearranged by hand,
-usually on the morning of the trip.
+Planning a trip with a voice assistant is already possible. What gets lost is everything
+after: the photos end up scattered in a camera roll, the little detours are forgotten, and
+the trip that started around the kitchen screen never comes back to it.
 
-We wanted an Alexa+ companion that holds one plan through all three moments, speaks up
-when something changes, and stays trustworthy: it suggests, the person decides.
+We wanted an Alexa+ companion for the whole journey: plan together at home, keep a
+scrapbook on the road, and bring the memories back to the kitchen screen so the family can
+relive them. And it has to stay trustworthy: it suggests, the person decides.
 
 ### What it does
 
 _Alexa+ itself is simulated (its developer toolkit is not available to hackathon
 participants). The MCP server, the MCP Apps cards and the phone journal are real and run locally._
 
+- **A scrapbook, not just an itinerary.** On the phone, every stop can hold a photo, a
+  few words and up to three of 32 travel stickers. Unplanned detours become pages
+  too ("An unplanned detour"). Each day turns into a kraft-paper scrapbook page, printable
+  as an A4 booklet or saved as one offline HTML file.
+- **Relive it together on Echo Show.** Back home, choose "Show memories on Echo Show" on
+  the phone. Alexa greets you ("3 memories from your phone just arrived. Shall I show
+  them?") and plays them as a polaroid-style slideshow on the kitchen screen. Nothing
+  leaves the phone until you choose to share it, and private notes never do.
 - **Plan by talking.** "Plan two easy days in Kyoto, with coffee." Travel Folio builds an
   itinerary from a curated list of real places and reads back a proposal. Nothing is
   created until you say yes to that exact proposal. English and Japanese.
@@ -48,20 +56,17 @@ participants). The MCP server, the MCP Apps cards and the phone journal are real
   interactive MCP Apps views styled with the Alexa+ visual foundations (768x480 canvas,
   one root zoom per device), with "Try saying…" hints for the next step.
 - **Take it to your phone.** "Take it to my phone" shows a QR code. The phone journal
-  imports the itinerary; your photos, words and 32 travel stickers stay on the
-  phone. Failed saves never lose an edit.
-- **Keep it.** Export the whole journal as one offline HTML file, or print an A4 booklet
-  (itinerary, memories or both) on kraft-paper styling, with no text dropped.
+  imports the itinerary and pairs with this home. Failed saves never lose an edit.
 
 ### How we built it
 
 - **Self-hosted MCP server** (official MCP TypeScript SDK, spec 2025-11-25, Streamable
-  HTTP): 11 tools (`preview_trip`, `create_trip`, `get_itinerary`, `get_next_stop`, `check_weather`,
+  HTTP): 12 tools (`preview_trip`, `create_trip`, `get_itinerary`, `get_next_stop`, `check_weather`,
   `list_places`, `propose_change`, `apply_change`, `undo_last_change`, `mark_visited`,
-  `send_to_phone`), resources for the current trip and each day, and a
+  `send_to_phone`, `show_memories`), resources for the current trip and each day, and a
   `morning_briefing` prompt. Tools carry annotations; `apply_change` asks the human through
   MCP elicitation when the client supports it.
-- **MCP Apps** (`io.modelcontextprotocol/ui`, 2026-01-26): seven tools link a hashed
+- **MCP Apps** (`io.modelcontextprotocol/ui`, 2026-01-26): eight tools link a hashed
   `ui://` view. It is a single self-contained bundle with inlined fonts and an empty CSP
   allowlist. Our simulated Echo Show is a small MCP Apps host: it loads the view through a
   cross-origin sandbox proxy, as the spec requires of web hosts.
@@ -75,7 +80,7 @@ participants). The MCP server, the MCP Apps cards and the phone journal are real
   a reproducible demo. Unknown data is reported as unknown, never as "dry".
 - **State:** each home plan is saved per browser and restored through MCP on return; the
   phone journal persists in IndexedDB with rescue copies.
-- **Quality:** 76 automated tests (real HTTP/MCP journeys, the MCP Apps handshake run
+- **Quality:** 81 automated tests (real HTTP/MCP journeys, the MCP Apps handshake run
   against the real view script, voice-controller timing, restart/restore), plus browser
   QA for the journey, phone storage, printing and the Echo Show cards.
 
@@ -92,8 +97,8 @@ participants). The MCP server, the MCP Apps cards and the phone journal are real
 
 ### Accomplishments that we're proud of
 
-- One plan that moves from a voice conversation to an Echo Show card, a phone, and a
-  printed page, without an account and without losing anything along the way.
+- A full circle: a voice conversation becomes an Echo Show card, a phone scrapbook, a
+  printed booklet, and finally a slideshow back on the kitchen screen, without an account.
 - An assistant that speaks first when it matters, but cannot change anything on its own.
 - The Echo Show cards follow Amazon's published design tokens.
 

@@ -7,8 +7,8 @@ These results cover this integrated app, not the older standalone bundle's repor
 
 From this directory run `npm ci`, then `npm test`.
 
-**76 tests passed, 0 failed** (2026-10-06). This includes the original 38 checks,
-10 voice API, 18 voice-controller, 5 returning-visit and 5 MCP Apps checks. No cloud credentials
+**81 tests passed, 0 failed** (2026-10-06). This includes the original 38 checks,
+10 voice API, 18 voice-controller, 5 returning-visit, 5 MCP Apps and 5 memory-sharing checks. No cloud credentials
 or model charges are required.
 
 - 5 MCP Apps tests (`test/apps.test.js`): `preview_trip` shows a pending trip without saving it, tool `_meta.ui.resourceUri` links, listed and
@@ -16,6 +16,10 @@ or model charges are required.
   no external requests, the real view script's `ui/initialize` handshake, Alexa+ root zoom,
   proposal/weather rendering and rejection of messages not from the host, and the HTTP host
   (latest card in state, resource endpoint, sandbox `frame-ancestors`, other pages `DENY`).
+- 5 memory-sharing tests (`test/share.test.js`): pairing token in the handoff link,
+  unpaired and malformed uploads refused, empty memories dropped, private notes never
+  stored, greeting on arrival, "yes" shows the slideshow through MCP, Japanese voice reply,
+  persistence across restart, validation caps, and no image data returned to a model.
 - 5 returning-visit tests (`test/memory.test.js`): a saved plan survives a real server
   restart and is re-read through MCP; one proactive greeting per return; before, during
   and after the trip wording; "yes" to the offer only prepares a proposal; "no" and a
@@ -46,6 +50,11 @@ Bedrock tests inject model responses. They verify the adapter and confirmation
 boundaries, not AWS permissions, model availability or answer quality.
 
 ## Browser checks
+
+2026-10-06: memory sharing was exercised end to end in headless Chromium: home plan →
+QR link with pairing token → phone import → Kinkaku-ji photo, caption and sticker →
+Save & take → Show memories on Echo Show (confirmation) → home greeting → slideshow card
+on the Echo Show view. No page errors. The demo video recording repeats this flow.
 
 2026-10-06: the Echo Show view was rendered in headless Chromium 134 for an itinerary,
 weather risk, a proposed indoor swap and an applied change, through the real sandbox proxy
