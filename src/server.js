@@ -1,10 +1,11 @@
 import express from 'express';
-import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { TripStore } from './domain/store.js';
+import { MemoryShelf } from './domain/memories.js';
 import { mountMcp } from './mcp/http.js';
 import { ConversationSession, UserError } from './agent/session.js';
 
@@ -57,6 +58,26 @@ export async function startServer(options = {}) {
   // session id and restored on the next visit, even after a server restart.
   const dataDir = options.dataDir !== undefined ? options.dataDir : process.env.DATA_DIR || null;
   const homeFile = (id) => dataDir ? path.join(dataDir, 'homes', `${id}.json`) : null;
+  const memoryFile = (id) => dataDir ? path.join(dataDir, 'homes', `${id}.memories.json`) : null;
+  // A phone paired through the handoff link may share memories back to its home.
+  // The pairing token is derived from the home id and a secret kept on this computer.
+  let shareSecret = randomBytes(32);
+  if (dataDir) {
+    const secretFile = path.join(dataDir, 'share-secret');
+    try { shareSecret = Buffer.from(fs.readFileSync(secretFile, 'utf8').trim(), 'hex'); if (shareSecret.length !== 32) throw new Error('short'); }
+    catch { shareSecret = randomBytes(32); fs.mkdirSync(dataDir, { recursive: true }); fs.writeFileSync(secretFile, shareSecret.toString('hex'), { mode: 0o600 }); }
+  }
+  const homeToken = (id) => createHmac('sha256', shareSecret).update(`home:${id}`).digest('hex').slice(0, 32);
+  const shelves = new Map();
+  const shelfFor = (id) => shelves.get(id) || new MemoryShelf({ file: memoryFile(id) });
+  function homeForToken(token) {
+    if (typeof token !== 'string' || !/^[0-9a-f]{32}$/.test(token)) return null;
+    const known = [...sessions.keys()];
+    if (dataDir) {
+      try { known.push(...fs.readdirSync(path.join(dataDir, 'homes')).filter((name) => /^[\da-f-]{36}\.json$/.test(name)).map((name) => name.slice(0, 36))); } catch { /* no saved homes yet */ }
+    }
+    return known.find((id) => timingSafeEqual(Buffer.from(homeToken(id)), Buffer.from(token))) || null;
+  }
   const config = { agentMode, weatherMode, bedrockConfigured: Boolean(bedrockModelId && region), remembers: Boolean(dataDir) };
   const app = express();
   const sessions = new Map();
@@ -78,10 +99,29 @@ export async function startServer(options = {}) {
     if (req.headers.origin && req.headers.origin !== `${req.protocol}://${req.headers.host}` && req.headers.origin !== publicUrl?.origin) return res.status(403).json({ error: 'Cross-origin requests are not allowed.' });
     next();
   });
+  // Memories shared from a paired phone (explicit action on the phone; same network).
+  const memoryUploads = new Map();
+  app.post('/api/memories', express.json({ limit: '12mb' }), (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    const id = homeForToken(req.header('x-folio-home'));
+    if (!id) return res.status(403).json({ error: 'This journal is not paired with this home. Open the plan again from the home QR code.' });
+    const recent = (memoryUploads.get(id) || []).filter((at) => Date.now() - at < 60000);
+    if (recent.length >= 6) return res.status(429).json({ error: 'Please wait a moment before sharing again.' });
+    memoryUploads.set(id, [...recent, Date.now()]);
+    try {
+      const shelf = shelfFor(id);
+      const { count } = shelf.replace(req.body);
+      shelves.set(id, shelf);
+      const session = sessions.get(id);
+      if (session) session.briefingDue = true;
+      res.json({ ok: true, count });
+    } catch (error) { res.status(400).json({ error: error.message }); }
+  });
   app.use(express.json({ limit: '32kb' }));
   const mcp = mountMcp(app, (req) => {
     const store = stores.get(req.header('x-folio-session'));
-    return store ? { store, publicBaseUrl: () => publicBase, weatherMode, ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}) } : null;
+    const id = req.header('x-folio-session');
+    return store ? { store, memories: shelves.get(id), homeToken: homeToken(id), publicBaseUrl: () => publicBase, weatherMode, ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}) } : null;
   }, '/mcp', {
     authorize: (req) => bearerMatches(req.headers.authorization, token),
     owner: (req) => req.header('x-folio-session'),
@@ -100,9 +140,11 @@ export async function startServer(options = {}) {
       // A damaged save is left untouched for manual recovery; this browser starts fresh.
       if (store.loadError) { id = randomUUID(); store = new TripStore({ file: homeFile(id) }); }
       stores.set(id, store);
+      shelves.set(id, shelfFor(id));
       session = new ConversationSession({ id, url, token, config, bedrockModelId, region, bedrockSend: options.bedrockSend });
       sessions.set(id, session);
       res.cookie(COOKIE, id, { httpOnly: true, sameSite: 'strict', secure: req.secure, path: '/', maxAge: dataDir ? REMEMBER_TTL : IDLE_TTL });
+      session.shelf = shelves.get(id);
       if (store.getTrip()) {
         try { await session.serialized(() => session.restore()); } catch (error) { return next(error); }
       }
@@ -133,6 +175,7 @@ export async function startServer(options = {}) {
     if (body.proposalId !== undefined && body.proposalId !== null && (typeof body.proposalId !== 'string' || body.proposalId.length > 80)) throw new UserError('Invalid voice proposal reference.');
     return session.chat(body.message.trim(), { inputMode: body.inputMode, language: body.language, proposalId: body.proposalId });
   }));
+  app.get('/api/app-call', (req, res) => res.json(req.folio.app ? { id: req.folio.app.id, tool: req.folio.app.tool, arguments: req.folio.app.arguments, result: req.folio.app.result } : null));
   app.get('/api/app-view', async (req, res, next) => {
     try {
       const uri = String(req.query.uri || '');
@@ -170,7 +213,7 @@ export async function startServer(options = {}) {
   const prune = setInterval(() => {
     for (const [id, session] of sessions) {
       if (!session.pending && Date.now() - session.lastUsed > IDLE_TTL) {
-        sessions.delete(id); stores.delete(id); session.close().catch(() => {});
+        sessions.delete(id); stores.delete(id); shelves.delete(id); session.close().catch(() => {});
       }
     }
   }, 60000);

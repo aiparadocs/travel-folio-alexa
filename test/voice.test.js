@@ -54,7 +54,7 @@ test('Japanese voice opens, plans, confirms the spoken proposal, checks weather 
   assert.equal(weather.data.voiceProposalId, null);
   const transfer = await a.voice('スマホで開きたい');
   assert.equal(transfer.status, 200);
-  assert.match(transfer.data.handoff.url, /\/phone\/#trip=/);
+  assert.match(transfer.data.handoff.url, /\/phone\/\?home=[0-9a-f]{32}#trip=/, 'the link pairs the phone with this home for sharing memories back');
   assert.equal(transfer.data.voiceHandoffReady, true);
   assert.equal(transfer.data.voiceProposalId, null);
   assert.match(transfer.data.voiceReply, /このPCだけ/);

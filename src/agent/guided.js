@@ -21,6 +21,10 @@ export function parseGuided(message) {
   if (/^(undo|undo last change|go back|元に戻して|元に戻す|取り消し|戻して)[.!。！\s]*$/.test(text)) return { action: 'undo' };
   if (/^(repeat|say that again|もう一度|もう一回|もう一度お願い|もう一度言って)$/.test(text)) return { action: 'repeat' };
   if (/^(?:(?:alexa|アレクサ)[,、\s]*)?(?:open (?:travel folio|my travel journal)|start (?:travel folio|my trip)|plan a trip|旅の手帳(?:を)?(?:開いて|ひらいて|開く)|旅行(?:を)?(?:始めたい|計画したい))$/.test(text)) return { action: 'open' };
+  if (/memor|photos|scrapbook|slideshow|思い出|写真|スクラップ/.test(text)) {
+    const only = text.match(/day\s*(\d|one|two|three|four)/) || text.match(/(\d)日目/);
+    return { action: 'memories', ...(only ? { day: number(only[1]) } : {}) };
+  }
   if (/phone|qr\b|スマホ|携帯/.test(text)) return { action: 'handoff' };
   const dayMatch = text.match(/day\s*(\d|one|two|three|four)/) || text.match(/(\d)日目/);
   const day = dayMatch ? number(dayMatch[1]) : 1;
@@ -51,4 +55,4 @@ export function parseGuided(message) {
   return null;
 }
 
-export const GUIDED_HELP = 'This guided demo supports Kyoto and Seattle. Try “Plan a relaxed two-day Kyoto trip with coffee and culture”, “Check weather”, “Move day 1 thirty minutes later”, or use the buttons. It cannot research bookings, transport, or other destinations.';
+export const GUIDED_HELP = 'This guided demo supports Kyoto and Seattle. Try “Plan a relaxed two-day Kyoto trip with coffee and culture”, “Check weather”, “Move day 1 thirty minutes later”, “Show our memories”, or use the buttons. It cannot research bookings, transport, or other destinations.';

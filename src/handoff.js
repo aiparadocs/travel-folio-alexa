@@ -62,14 +62,16 @@ export function packForPhone(trip) {
   return [2, trip.title.slice(0, 60), trip.cityName.slice(0, 60), trip.startDate || '', trip.days, 0, stops];
 }
 
-export function phoneLink(trip, baseUrl) {
+export function phoneLink(trip, baseUrl, { homeToken } = {}) {
   const base = new URL('/phone/', baseUrl);
   if (!['http:', 'https:'].includes(base.protocol)) throw new Error('The phone link must use an HTTP or HTTPS address.');
+  // Optional pairing token: lets this phone share memories back to the same home later.
+  if (homeToken) base.searchParams.set('home', homeToken);
   return `${base.href}#trip=${compress(JSON.stringify(packForPhone(trip)))}`;
 }
 
-export async function handoff(trip, baseUrl) {
-  const url = phoneLink(trip, baseUrl);
+export async function handoff(trip, baseUrl, linkOptions = {}) {
+  const url = phoneLink(trip, baseUrl, linkOptions);
   const options = { type: 'svg', margin: 4, color: { dark: '#14202b', light: '#ffffff' } };
   // Full four-day plans can exceed the M-level QR capacity. Keep every note
   // in the portable link and use L correction for these larger codes.

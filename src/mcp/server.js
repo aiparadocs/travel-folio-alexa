@@ -275,9 +275,27 @@ remove_stop{stopId}; replace_stop{stopId[,kind|placeId]}. Locked or visited stop
     annotations: { readOnlyHint: true, openWorldHint: false },
   }, safe(async () => {
     const trip = store.requireTrip();
-    const h = await handoff(trip, deps.publicBaseUrl());
+    const h = await handoff(trip, deps.publicBaseUrl(), { homeToken: deps.homeToken });
     const note = h.reachableFromPhone ? 'Scan the code on screen with your phone.' : 'The server is only listening on this computer, so a phone cannot open it. Restart with HOST=0.0.0.0 (same Wi-Fi) or set PUBLIC_BASE_URL.';
     return result(`Phone link ready. ${note}`, { url: h.url, qrSvg: h.qrSvg, reachableFromPhone: h.reachableFromPhone });
+  }));
+
+  server.registerTool('show_memories', {
+    title: 'Show trip memories',
+    description: 'Show the photos, words and stickers the person shared from their phone journal, as a slideshow on the screen. Optionally only one day.',
+    inputSchema: { day: z.number().int().min(1).max(14).optional() },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+    _meta: withTripCard,
+  }, safe(async ({ day }) => {
+    const book = deps.memories?.get();
+    if (!book) throw new Error('No memories have been shared yet. On the phone journal, choose Save & take, then Show on Echo Show.');
+    const items = book.items.filter((item) => day == null || item.day === day);
+    if (!items.length) throw new Error(`There are no shared memories for day ${day}.`);
+    deps.memories.markSeen();
+    const photos = items.filter((item) => item.photo).length;
+    // Keep the text short: images travel only in structuredContent for the screen.
+    return { content: [{ type: 'text', text: `Showing ${items.length} memor${items.length === 1 ? 'y' : 'ies'} from "${book.title}" (${photos} photo${photos === 1 ? '' : 's'}).` }],
+      structuredContent: { memories: { title: book.title, place: book.place, day: day ?? null, items } } };
   }));
 
   // ---------------- resources ----------------

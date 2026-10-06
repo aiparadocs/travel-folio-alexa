@@ -48,7 +48,7 @@ test('MCP Apps view speaks the ui/initialize handshake and renders tool results'
   const posted = [];
   const listeners = [];
   const make = (tag) => {
-    const node = { tag, children: [], style: {}, dataset: {}, attributes: {}, textContent: '', className: '',
+    const node = { tag, children: [], style: {}, dataset: {}, attributes: {}, textContent: '', className: '', classList: { toggle() {} },
       append(...items) { this.children.push(...items); }, replaceChildren(...items) { this.children = items; },
       setAttribute(name, value) { this.attributes[name] = value; }, addEventListener() {},
       getBoundingClientRect: () => ({ width: 768, height: 480 }) };
@@ -62,7 +62,7 @@ test('MCP Apps view speaks the ui/initialize handshake and renders tool results'
     window: { parent, addEventListener: (type, fn) => listeners.push(fn) },
     document: { getElementById: () => root, createElement: make, documentElement },
     ResizeObserver: class { observe() {} },
-    Intl, Date, Math, String, Number, Set, Map, Promise, JSON, Array, Object,
+    Intl, Date, Math, String, Number, Set, Map, Promise, JSON, Array, Object, setTimeout: () => 0, clearTimeout: () => {},
   };
   vm.runInNewContext(TRIP_CARD_HTML.match(/<script>([\s\S]*)<\/script>/)[1], context);
   const init = posted.find((message) => message.method === 'ui/initialize');
@@ -84,6 +84,11 @@ test('MCP Apps view speaks the ui/initialize handshake and renders tool results'
   deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { preview: { title: '2 days in Kyoto', city: 'kyoto', days: [{ day: 1, stops: [{ stopId: 'x', time: '10:00', title: 'Fushimi Inari Taisha', kind: 'walk', minutes: 120 }] }, { day: 2, stops: [] }] } } } });
   assert.match(text(root), /Alexa suggests · 2-day trip/);
   assert.match(text(root), /Nothing is saved until you confirm/);
+  deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { memories: { title: '2 days in Kyoto', items: [{ day: 2, time: '14:29', title: 'Kinkaku-ji', caption: 'Gold on a blue afternoon.', photo: 'data:image/jpeg;base64,AAAA', stickers: [] }, { day: 2, title: 'Genko-an', caption: 'Round window.', photo: null, stickers: [] }] } } } });
+  assert.match(text(root), /OUR TRIP MEMORIES/);
+  assert.match(text(root), /Kinkaku-ji/);
+  assert.match(text(root), /Gold on a blue afternoon\./);
+  assert.match(text(root), /1 \/ 2/);
   const other = { postMessage() {} };
   listeners.forEach((fn) => fn({ source: other, data: { jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { trip: { title: 'Injected', days: [] } } } } }));
   assert.doesNotMatch(text(root), /Injected/, 'messages not from the host are ignored');
@@ -102,7 +107,10 @@ test('HTTP host: the simulator keeps the latest card and serves it with a cross-
   const weather = await post({ action: 'weather', day: 1 });
   assert.equal(weather.app.tool, 'check_weather');
   assert.equal(weather.app.resourceUri, TRIP_CARD_URI);
-  assert.ok(weather.app.result.structuredContent.stops.length);
+  assert.equal(weather.app.result, undefined, 'state polling stays small: the card payload is fetched separately');
+  const call = await (await fetch(`${running.url}/api/app-call`, { headers: { cookie } })).json();
+  assert.equal(call.id, weather.app.id);
+  assert.ok(call.result.structuredContent.stops.length);
   const view = await fetch(`${running.url}/api/app-view?uri=${encodeURIComponent(TRIP_CARD_URI)}`, { headers: { cookie } });
   assert.equal(view.status, 200);
   assert.equal((await view.json()).html, TRIP_CARD_HTML);
@@ -137,5 +145,6 @@ test('preview_trip shows a new trip as a card without saving anything', async (t
   assert.equal(prepared.trip, null);
   assert.equal(prepared.proposal.kind, 'create');
   assert.equal(prepared.app.tool, 'preview_trip', 'the screen shows the pending trip before it is confirmed');
-  assert.equal(prepared.app.arguments.city, 'kyoto');
+  const call = await (await fetch(`${running.url}/api/app-call`, { headers: { cookie } })).json();
+  assert.equal(call.arguments.city, 'kyoto');
 });

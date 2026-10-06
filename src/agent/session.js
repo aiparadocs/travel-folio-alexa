@@ -118,6 +118,10 @@ export class ConversationSession {
     this.suggestion = null;
     this.app = null;
   }
+  memorySummary() {
+    const book = this.shelf?.get();
+    return book ? { title: book.title, count: book.items.length, photos: book.items.filter((item) => item.photo).length, unseen: !book.seen } : null;
+  }
   /** Rebuild the conversation view from a plan saved on an earlier visit. */
   async restore() {
     await this.tool('get_itinerary');
@@ -131,13 +135,25 @@ export class ConversationSession {
   async briefing(now = new Date()) {
     this.briefingDue = false;
     this.suggestion = null;
+    const memories = this.memorySummary();
+    if (memories?.unseen) {
+      this.shelf.markSeen();
+      this.suggestion = { action: 'memories', label: 'Show our memories on Echo Show' };
+      return `Welcome back. ${memories.count} memor${memories.count === 1 ? 'y' : 'ies'} from your phone just arrived${memories.photos ? `, with ${memories.photos} photo${memories.photos === 1 ? '' : 's'}` : ''}. Shall I show them on the Echo Show?`;
+    }
     if (!this.trip) return 'Where would you like to go: Kyoto or Seattle?';
     const city = cityName(this.trip.city, false);
     const days = this.trip.days;
     const today = localDate(this.trip.city, now);
     const first = days[0].date;
     const last = days.at(-1).date;
-    if (today > last) return `Welcome back. Your ${city} trip has finished. Your photos and words stay in the phone journal, and Print turns them into a one-page keepsake.`;
+    if (today > last) {
+      if (memories) {
+        this.suggestion = { action: 'memories', label: 'Show our memories on Echo Show' };
+        return `Welcome back. Your ${city} trip has finished. Shall I show your memories on the Echo Show again?`;
+      }
+      return `Welcome back. Your ${city} trip has finished. On the phone journal, choose Save & take, then Show on Echo Show, and we can relive it here together.`;
+    }
     const travelling = today >= first;
     const day = travelling ? days.findIndex((entry) => entry.date === today) + 1 : 1;
     const when = travelling ? `Today is day ${day} of your ${city} trip.` : `Your ${days.length}-day ${city} trip starts ${first === shiftDate(today, 1) ? 'tomorrow' : longDate(first)}.`;
@@ -175,7 +191,8 @@ export class ConversationSession {
       trip: this.trip, proposal: this.proposal, handoff: this.handoff, weather: this.weather,
       config: this.config, messages: this.messages, trace: this.trace,
       briefingDue: this.briefingDue && !!this.trip, suggestion: this.proposal ? null : this.suggestion,
-      app: this.app,
+      app: this.app ? { id: this.app.id, tool: this.app.tool, resourceUri: this.app.resourceUri } : null,
+      memories: this.memorySummary(),
       ...(reply !== undefined ? { reply } : {}),
     };
   }
@@ -231,6 +248,11 @@ export class ConversationSession {
     const action = input.action;
     if (action === 'briefing') return this.briefing();
     this.suggestion = null;
+    if (action === 'memories') {
+      const day = input.day === undefined ? undefined : z.number().int().min(1).max(14).parse(input.day);
+      const result = await this.tool('show_memories', day === undefined ? {} : { day });
+      return `${result.text} They are on the screen now.`;
+    }
     if (action === 'open' || action === 'repeat') return this.trip ? `Your ${this.trip.days.length}-day ${cityName(this.trip.city, false)} plan is here. Ask about the weather, make a change, or take it to your phone.` : 'Where would you like to go: Kyoto or Seattle? You can also tell me the number of days and what you enjoy.';
     if (action === 'create') {
       const reply = this.prepareCreate(input);
@@ -297,6 +319,8 @@ export class ConversationSession {
     if (['propose_change', 'send_to_phone'].includes(name) && this.proposal) return { status: 'needs_confirmation', proposal: this.proposal };
     const result = await this.tool(name, args);
     if (name === 'send_to_phone') return { url: result.data.url, reachableFromPhone: result.data.reachableFromPhone };
+    // Photos are for the screen only; the model gets titles and words, never image data.
+    if (name === 'show_memories') return { shownOnScreen: true, title: result.data.memories.title, memories: result.data.memories.items.map(({ day, title, caption }) => ({ day, title, caption })) };
     return result.data;
   }
   voiceResponse(reply, { language = 'en-US', action, confirmationBlocked = false, confirmedKind = null } = {}) {
@@ -313,6 +337,7 @@ export class ConversationSession {
     else if (confirmedKind) spoken = japanese ? `${confirmedKind === 'create' ? `${cityName(this.trip.city, true)}の${this.trip.days.length}日間の旅程を作成しました` : '旅程に変更を反映しました'}。天気を確認するか、「スマホで開きたい」と言ってください。` : `${confirmedKind === 'create' ? `Your ${this.trip.days.length}-day ${cityName(this.trip.city, false)} plan is ready` : 'I applied the changes'}. Ask about the weather, or say “take it to my phone”.`;
     else if (handoffReady) spoken = japanese ? this.handoff.reachableFromPhone ? 'スマホ用のQRコードを表示しました。スマホのカメラで読み取り、手帳に取り込んでください。同じWi-FiでPCを起動したまま使えます。' : '旅程のリンクができました。今はこのPCだけで開けます。スマホで読む場合は、Phone用の起動ファイルで同じWi-Fi向けに起動し直してください。' : this.handoff.reachableFromPhone ? 'Your QR code is ready. Scan it with your phone camera, then import the plan. For a home-network link, use the same Wi-Fi and keep this computer running.' : 'The plan link is ready for this computer only. To scan it on your phone, restart with the Phone launcher on the same Wi-Fi.';
     else if (action === 'weather' || this.lastToolResult?.name === 'check_weather') spoken = spokenWeather(this.weather, japanese);
+    else if (action === 'memories' && this.lastToolResult?.name === 'show_memories') spoken = japanese ? '思い出を画面に映しました。旅を一緒に振り返りましょう。' : 'Here are your memories, on the screen. Let’s relive the trip together.';
     else if (action === 'decline') spoken = japanese ? 'キャンセルしました。旅程は変更していません。次はどうしましょうか。' : 'Cancelled. Your plan is unchanged. What would you like to do next?';
     else if (action === 'undo') spoken = japanese ? '直前の旅程に戻しました。' : 'I restored the previous plan.';
     else if (action === 'next' && this.lastToolResult?.data) {

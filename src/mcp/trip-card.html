@@ -53,6 +53,23 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
 .hints span { font-size: 16px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 9999px; padding: 6px 14px; }
 .ok { color: var(--accent); }
 .empty { font-size: 20px; color: var(--muted); }
+/* Memories slideshow: a scrapbook page on warm paper. */
+#root.memories { background: #f3ead8; color: #3b2f22; padding: 22px 26px; gap: 10px; }
+.mem-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 800; color: #7a6248; letter-spacing: .02em; }
+.mem { flex: 1; display: grid; grid-template-columns: 430px 1fr; gap: 26px; align-items: center; min-height: 0; animation: memIn .6s ease; }
+@keyframes memIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.polaroid { background: #fffdf8; padding: 12px 12px 34px; border-radius: 6px; box-shadow: 0 6px 18px rgba(80, 60, 30, .22); transform: rotate(-1.6deg); height: 380px; display: flex; align-items: center; justify-content: center; position: relative; }
+.polaroid img.photo { max-width: 100%; max-height: 100%; object-fit: contain; display: block; border-radius: 2px; }
+.polaroid .tape { position: absolute; top: -10px; left: 50%; width: 90px; height: 22px; margin-left: -45px; background: rgba(214, 196, 150, .75); transform: rotate(2deg); }
+.mem-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mem-when { font-size: 16px; font-weight: 800; color: #7a6248; }
+.mem-title { font-family: var(--hand); font-size: 46px; line-height: 1; font-weight: 700; color: #2f4a3a; }
+.mem-caption { font-family: var(--hand); font-size: 30px; line-height: 1.15; color: #4a3a2a; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
+.mem-stickers { display: flex; gap: 6px; margin-top: 4px; }
+.mem-stickers img { width: 76px; height: 76px; }
+.mem-dots { display: flex; gap: 6px; align-items: center; justify-content: center; }
+.mem-dots span { width: 8px; height: 8px; border-radius: 50%; background: #cdbb9b; }
+.mem-dots span.on { width: 22px; border-radius: 6px; background: #2f4a3a; }
 </style>
 </head>
 <body>
@@ -82,7 +99,7 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
       pending.delete(message.id);
       return message.error ? reject(message.error) : resolve(message.result);
     }
-    if (message.method === 'ui/notifications/tool-result') { data = message.params?.structuredContent || null; day = pickDay(data); render(); }
+    if (message.method === 'ui/notifications/tool-result') { data = message.params?.structuredContent || null; day = pickDay(data); slide = 0; render(); }
     if (message.method === 'ui/notifications/host-context-changed') applyContext(message.params);
     if (message.method === 'ui/resource-teardown' && message.id != null) send({ id: message.id, result: {} });
   });
@@ -169,10 +186,54 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
     if (moved) list.append(el('div', 'meta', `${moved} later stop${moved === 1 ? '' : 's'} adjusted to fit.`));
     return list;
   }
+  let slide = 0;
+  let slideTimer = 0;
+  function renderMemories(book) {
+    const items = book.items || [];
+    if (!items.length) return [el('p', 'empty', 'No memories yet.')];
+    slide %= items.length;
+    const item = items[slide];
+    const head = el('div', 'mem-head');
+    head.append(el('span', '', `OUR TRIP MEMORIES · ${String(book.title || '').toUpperCase()}`), el('span', '', `${slide + 1} / ${items.length}`));
+    const page = el('div', 'mem');
+    const frame = el('div', 'polaroid');
+    frame.append(el('span', 'tape'));
+    if (item.photo) {
+      const img = el('img', 'photo');
+      img.src = item.photo;
+      img.alt = item.title;
+      frame.append(img);
+    } else if (item.stickers?.[0]) {
+      const img = el('img', 'photo');
+      img.src = item.stickers[0].data;
+      img.alt = item.stickers[0].label;
+      frame.append(img);
+    }
+    const words = el('div', 'mem-text');
+    const when = [item.day ? `Day ${item.day}` : '', item.time || ''].filter(Boolean).join(' · ');
+    if (when) words.append(el('div', 'mem-when', when));
+    words.append(el('div', 'mem-title', item.title));
+    if (item.caption) words.append(el('div', 'mem-caption', item.caption));
+    if (item.stickers?.length) {
+      const row = el('div', 'mem-stickers');
+      for (const sticker of item.stickers) { const img = el('img'); img.src = sticker.data; img.alt = `${sticker.label} sticker`; row.append(img); }
+      words.append(row);
+    }
+    page.append(frame, words);
+    const dots = el('div', 'mem-dots');
+    items.forEach((_, index) => dots.append(el('span', index === slide ? 'on' : '')));
+    clearTimeout(slideTimer);
+    if (items.length > 1) slideTimer = setTimeout(() => { slide += 1; render(); }, 6000);
+    return [head, page, dots];
+  }
+  root.addEventListener('click', () => { if (data?.memories) { slide += 1; render(); } });
   function render() {
     const value = data || {};
     const nodes = [];
-    if (value.preview) {
+    root.classList.toggle('memories', !!value.memories);
+    if (value.memories) {
+      nodes.push(...renderMemories(value.memories));
+    } else if (value.preview) {
       const trip = value.preview;
       nodes.push(header(`Alexa suggests · ${trip.days.length}-day trip`, trip.title, trip), stops(dayStops(trip)));
       const foot = el('div', 'footer');

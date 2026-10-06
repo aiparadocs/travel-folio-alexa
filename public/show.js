@@ -108,7 +108,8 @@
         const assistant = [...(state.messages || [])].reverse().find((entry) => entry.role === 'assistant');
         if (state.app && state.app.id !== shownId) {
           shownId = state.app.id;
-          await mount(state.app).catch(() => {});
+          const call = await fetch('/api/app-call', { credentials: 'same-origin' }).then((r) => r.ok ? r.json() : null).catch(() => null);
+          if (call && call.id === state.app.id) await mount({ ...state.app, ...call }).catch(() => {});
         }
         if (assistant && state.messages.length > 1) caption(assistant.text);
       }
