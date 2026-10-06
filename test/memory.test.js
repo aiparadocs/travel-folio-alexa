@@ -124,7 +124,8 @@ test('the greeting follows the destination calendar: during the trip and after i
   const weekAgo = new Date(`${today}T12:00:00Z`);
   weekAgo.setUTCDate(weekAgo.getUTCDate() - 7);
   const cases = [
-    { startDate: today, expect: /^Welcome back\. Today is day 1 of your Kyoto trip\. Next up: .+ at \d{2}:\d{2}\./ },
+    // "Next up" depends on the clock in Kyoto: late in the day every stop may be over.
+    { startDate: today, expect: /^Welcome back\. Today is day 1 of your Kyoto trip\.( Next up: .+ at \d{2}:\d{2}\.)? (The sample weather|No significant rain|I could not)/ },
     { startDate: weekAgo.toISOString().slice(0, 10), expect: /^Welcome back\. Your Kyoto trip has finished\./ },
   ];
   for (const { startDate, expect } of cases) {

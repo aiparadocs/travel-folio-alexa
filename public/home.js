@@ -106,12 +106,23 @@
     $('proposal-summary').textContent = proposal.summary || 'Review this proposal before applying it.';
     $('confirm-proposal').textContent = create ? 'Use this plan' : 'Apply these changes';
     $('decline-proposal').textContent = state?.trip ? 'Keep current plan' : 'Not yet';
-    for (const diff of Array.isArray(proposal.diff) ? proposal.diff : []) {
+    const diffs = Array.isArray(proposal.diff) ? proposal.diff : [];
+    // When stops are swapped, added or removed, the re-timed ones are summarized in one row
+    // so the real changes stand out; a pure time shift still lists every stop.
+    const headline = diffs.filter((diff) => typeof diff === 'string' || diff.op !== 'moved');
+    const moved = diffs.length - headline.length;
+    const rows = headline.length ? headline : diffs;
+    for (const diff of rows) {
       const row = el('li');
       if (typeof diff === 'string') { row.textContent = diff; $('proposal-diff').append(row); continue; }
       row.append(el('span', 'diff-day', `DAY ${diff.day || selectedDay} · ${String(diff.op || 'change').toUpperCase()}`));
       if (diff.before) row.append(el('del', '', [diff.before.time, diff.before.title].filter(Boolean).join(' · ')));
       if (diff.after) row.append(el('ins', '', [diff.after.time, diff.after.title].filter(Boolean).join(' · ')));
+      $('proposal-diff').append(row);
+    }
+    if (headline.length && moved) {
+      const row = el('li', 'diff-summary');
+      row.append(el('span', 'diff-day', 'LATER STOPS'), el('span', '', `${moved} stop${moved === 1 ? '' : 's'} adjusted to fit`));
       $('proposal-diff').append(row);
     }
     for (const warning of proposal.warnings || []) $('proposal-warnings').append(el('li', '', warning));

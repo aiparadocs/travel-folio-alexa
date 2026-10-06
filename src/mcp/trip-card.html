@@ -43,6 +43,9 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
 .bars span { flex: 1; background: var(--rain); border-radius: 4px 4px 0 0; min-height: 3px; opacity: .85; }
 .hours { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
 .changes { display: grid; gap: 8px; }
+.counts { display: flex; gap: 12px; }
+.count { display: flex; align-items: baseline; gap: 8px; background: var(--card-inner); border-radius: 9999px; padding: 8px 20px; font-size: 20px; font-weight: 800; }
+.count b { font-size: 30px; color: var(--accent); }
 .change { display: grid; grid-template-columns: 76px 1fr; gap: 4px 12px; align-items: baseline; background: var(--card-inner); border-radius: 12px; padding: 12px 16px; }
 .change .op { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
 .change del { color: var(--del); font-size: 16px; grid-column: 2; }
@@ -201,7 +204,7 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
       if (item.after) row.append(el('ins', '', `${item.after.time} ${item.after.title}`));
       list.append(row);
     }
-    if (moved) list.append(el('div', 'meta', `${moved} later stop${moved === 1 ? '' : 's'} adjusted to fit.`));
+
     return list;
   }
   let slide = 0;
@@ -275,7 +278,16 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
       foot.append(el('span', 'pill', 'Say “yes” to create it'), el('span', '', 'Nothing is saved until you confirm.'));
       nodes.push(foot);
     } else if (value.proposal) {
-      nodes.push(header('Alexa suggests', 'A change of plan'), el('div', 'banner', value.proposal.summary), changeList(value.proposal.diff || []));
+      const diff = value.proposal.diff || [];
+      const tally = (ops) => diff.filter((item) => ops.includes(item.op)).length;
+      const counts = el('div', 'counts');
+      for (const [n, label] of [[tally(['replaced']), 'replaced'], [tally(['added']), 'added'], [tally(['removed']), 'removed'], [tally(['moved']), 'later stops adjusted']]) {
+        if (!n) continue;
+        const chip = el('div', 'count');
+        chip.append(el('b', '', n), el('span', '', label));
+        counts.append(chip);
+      }
+      nodes.push(header('Alexa suggests', 'A change of plan'), counts, changeList(diff));
       const foot = el('div', 'footer');
       foot.append(el('span', 'pill', 'Say “yes” to apply'), el('span', '', 'Nothing changes until you confirm.'));
       nodes.push(foot);
