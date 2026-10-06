@@ -31,8 +31,15 @@ relive them. And it has to stay trustworthy: it suggests, the person decides.
 
 ### What it does
 
-_Alexa+ itself is simulated (its developer toolkit is not available to hackathon
-participants). The MCP server, the MCP Apps cards and the phone journal are real and run locally._
+> **What is real and what is simulated.** This demo simulates how Travel Folio's MCP
+> responses would appear on an Alexa device: the Alexa+ developer toolkit is not available
+> to hackathon participants, so there is no real Alexa or Echo connection. The MCP server,
+> its tool calls, the MCP Apps cards, the phone journal and the memory sharing are real and
+> run locally.
+
+**In one line:** voice-first travel planning with explicit consent — plan, disruption,
+suggested replacement, visible diff, your confirmation, and finally a scrapbook you relive
+together.
 
 - **A scrapbook, not just an itinerary.** On the phone, every stop can hold a photo, a
   few words and up to three of 32 travel stickers. Unplanned detours become pages
