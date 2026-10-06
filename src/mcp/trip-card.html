@@ -88,7 +88,8 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
   });
   function applyContext(context = {}) {
     if (context.theme) document.documentElement.dataset.theme = context.theme;
-    const width = context.containerDimensions?.width ?? context.containerDimensions?.maxWidth;
+    // MCP Apps spec: containerDimensions; the Alexa+ guide also names a top-level maxWidth.
+    const width = context.containerDimensions?.width ?? context.containerDimensions?.maxWidth ?? context.maxWidth;
     // Alexa+ guidance: apply a single root scale (Echo Show 8/15: 1.667).
     if (width) document.documentElement.style.zoom = String(Math.round((width / 768) * 1000) / 1000);
   }

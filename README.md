@@ -175,8 +175,9 @@ internet multi-user service with user accounts or production authentication.
 
 Run `npm test`. [TESTING.md](TESTING.md) distinguishes automated checks, browser QA,
 and integrations still requiring real devices/accounts. [DEMO.md](docs/DEMO.md)
-provides a short walkthrough. [FRICTION_LOG.md](docs/FRICTION_LOG.md) records actual
-development findings. The two `legacy-*.md` documents are historical reports, not
+provides a short walkthrough. [FRICTION_LOG.md](docs/FRICTION_LOG.md) is our developer
+friction log for the Alexa+ tools; [DEVELOPMENT_LOG.md](docs/DEVELOPMENT_LOG.md) records our
+own implementation findings. [SUBMISSION.md](docs/SUBMISSION.md) holds the Devpost text. The two `legacy-*.md` documents are historical reports, not
 instructions for this app.
 
 The [organizer's simulation clarification](https://amazonappdev2026.devpost.com/forum_topics/45058-clarification-on-simulated-alexa-web-experience-requirements)
