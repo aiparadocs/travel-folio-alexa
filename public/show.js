@@ -20,8 +20,10 @@
   }
   function tick() {
     const now = new Intl.DateTimeFormat('en', { hour: 'numeric', minute: '2-digit' }).format(new Date());
+    const hour = new Date().getHours();
     $('clock').textContent = now;
     $('idle-time').textContent = now;
+    $('idle-greeting').textContent = hour < 5 ? 'Good evening' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   }
   function caption(text) {
     if (!text || text === lastMessage) return;
@@ -62,7 +64,7 @@
           hostCapabilities: {},
           hostContext: {
             toolInfo: { tool: { name: app.tool } },
-            theme: 'dark', displayMode: 'inline', availableDisplayModes: ['inline'],
+            theme: 'light', displayMode: 'inline', availableDisplayModes: ['inline'],
             containerDimensions: { width: CARD_WIDTH, height: 480 * (CARD_WIDTH / 768) },
             locale: 'en-US', timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, platform: 'web',
             deviceCapabilities: { touch: true, hover: false }, safeAreaInsets: { top: 0, right: 0, bottom: 0, left: 0 },

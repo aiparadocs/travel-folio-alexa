@@ -221,13 +221,22 @@ export class ConversationSession {
     };
     return `${this.proposal.summary} Review the details, then confirm.`;
   }
+  /** Best effort: show the pending new trip as a screen card. Saving still needs confirmation. */
+  async previewCreate() {
+    if (this.proposal?.kind !== 'create') return;
+    try { await this.tool('preview_trip', this.proposal.details); } catch { /* the card is optional */ }
+  }
   async action(input) {
     this.pruneProposal();
     const action = input.action;
     if (action === 'briefing') return this.briefing();
     this.suggestion = null;
     if (action === 'open' || action === 'repeat') return this.trip ? `Your ${this.trip.days.length}-day ${cityName(this.trip.city, false)} plan is here. Ask about the weather, make a change, or take it to your phone.` : 'Where would you like to go: Kyoto or Seattle? You can also tell me the number of days and what you enjoy.';
-    if (action === 'create') return this.prepareCreate(input);
+    if (action === 'create') {
+      const reply = this.prepareCreate(input);
+      await this.previewCreate();
+      return reply;
+    }
     if (action === 'decline') {
       if (input.proposalId !== undefined && input.proposalId !== this.proposal?.proposalId) throw new UserError('That proposal is out of date. Review the current proposal before cancelling it.', 409);
       this.proposal = null;
@@ -282,6 +291,7 @@ export class ConversationSession {
     if (name === 'create_trip') {
       if (this.proposal) return { status: 'needs_confirmation', proposal: this.proposal };
       this.prepareCreate(args);
+      await this.previewCreate();
       return { status: 'needs_confirmation', proposal: this.proposal };
     }
     if (['propose_change', 'send_to_phone'].includes(name) && this.proposal) return { status: 'needs_confirmation', proposal: this.proposal };

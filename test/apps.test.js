@@ -8,7 +8,7 @@ import { TripStore } from '../src/domain/store.js';
 import { MCP_APP_MIME, TRIP_CARD_HTML, TRIP_CARD_URI } from '../src/mcp/apps.js';
 import { startServer } from '../src/server.js';
 
-const UI_TOOLS = ['create_trip', 'get_itinerary', 'check_weather', 'propose_change', 'apply_change', 'undo_last_change'];
+const UI_TOOLS = ['preview_trip', 'create_trip', 'get_itinerary', 'check_weather', 'propose_change', 'apply_change', 'undo_last_change'];
 
 async function mcpSession(t) {
   const server = createTravelFolioServer({ store: new TripStore(), publicBaseUrl: () => 'http://127.0.0.1:3000', weatherMode: 'demo' });
@@ -81,6 +81,9 @@ test('MCP Apps view speaks the ui/initialize handshake and renders tool results'
   deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { day: 1, date: '2026-10-07', source: 'demo', atRisk: [{ stopId: 's1', title: 'A' }], rainyWindow: { from: '10:00', to: '17:00' }, stops: [{ stopId: 's1', time: '10:00', title: 'A', kind: 'walk', minutes: 60 }], hourly: [] } } });
   assert.match(text(root), /Rain likely 10:00–17:00/);
   assert.match(text(root), /Sample weather/);
+  deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { preview: { title: '2 days in Kyoto', city: 'kyoto', days: [{ day: 1, stops: [{ stopId: 'x', time: '10:00', title: 'Fushimi Inari Taisha', kind: 'walk', minutes: 120 }] }, { day: 2, stops: [] }] } } } });
+  assert.match(text(root), /Alexa suggests · 2-day trip/);
+  assert.match(text(root), /Nothing is saved until you confirm/);
   const other = { postMessage() {} };
   listeners.forEach((fn) => fn({ source: other, data: { jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { trip: { title: 'Injected', days: [] } } } } }));
   assert.doesNotMatch(text(root), /Injected/, 'messages not from the host are ignored');
@@ -109,4 +112,30 @@ test('HTTP host: the simulator keeps the latest card and serves it with a cross-
   assert.equal(sandbox.headers.get('x-frame-options'), null);
   assert.equal(sandbox.headers.get('content-security-policy'), `frame-ancestors http://localhost:${port} http://127.0.0.1:${port}`);
   assert.equal((await fetch(`${running.url}/show.html`)).headers.get('x-frame-options'), 'DENY');
+});
+
+test('preview_trip shows a new trip as a card without saving anything', async (t) => {
+  const store = new TripStore();
+  const server = createTravelFolioServer({ store, publicBaseUrl: () => 'http://127.0.0.1:3000', weatherMode: 'demo' });
+  const client = new Client({ name: 'preview-tests', version: '1.0.0' });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  await server.connect(serverTransport);
+  await client.connect(clientTransport);
+  t.after(async () => { await client.close(); await server.close(); });
+  const tool = (await client.listTools()).tools.find((item) => item.name === 'preview_trip');
+  assert.equal(tool.annotations.readOnlyHint, true);
+  const preview = await client.callTool({ name: 'preview_trip', arguments: { city: 'kyoto', days: 2, pace: 'relaxed', interests: ['culture', 'views'], startDate: '2026-10-07' } });
+  assert.equal(preview.structuredContent.preview.title, '2 days in Kyoto');
+  assert.ok(preview.structuredContent.preview.days[1].stops.some((stop) => stop.title === 'Kinkaku-ji'));
+  assert.equal(store.getTrip(), null, 'nothing is saved by a preview');
+
+  const running = await startServer({ port: 0, agentMode: 'guided', weatherMode: 'demo' });
+  t.after(() => running.close());
+  const first = await fetch(`${running.url}/api/state`);
+  const cookie = first.headers.get('set-cookie').split(';')[0];
+  const prepared = await (await fetch(`${running.url}/api/action`, { method: 'POST', headers: { cookie, origin: running.url, 'content-type': 'application/json' }, body: JSON.stringify({ action: 'create', city: 'kyoto', days: 2 }) })).json();
+  assert.equal(prepared.trip, null);
+  assert.equal(prepared.proposal.kind, 'create');
+  assert.equal(prepared.app.tool, 'preview_trip', 'the screen shows the pending trip before it is confirmed');
+  assert.equal(prepared.app.arguments.city, 'kyoto');
 });

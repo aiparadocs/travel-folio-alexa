@@ -81,6 +81,23 @@ export function createTravelFolioServer(deps) {
     return result(`Created "${trip.title}" starting ${trip.startDate} (${counts}).`, { trip: s });
   }));
 
+  server.registerTool('preview_trip', {
+    title: 'Preview a trip',
+    description: 'Show what create_trip would plan, without saving anything. Use it to let the person review a new trip before they agree to create it.',
+    inputSchema: {
+      city: z.enum(CITY_IDS).describe('Destination city id'),
+      days: z.number().int().min(1).max(MAX_DAYS).default(2).describe('Number of days'),
+      pace: z.enum(PACES).default('balanced'),
+      interests: z.array(z.enum(INTERESTS)).max(INTERESTS.length).default([]),
+      startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    },
+    annotations: { title: 'Preview a trip', readOnlyHint: true, openWorldHint: false },
+    _meta: withTripCard,
+  }, safe(async (args) => {
+    const preview = summarizeTrip(createTrip(args));
+    return result(`Preview of "${preview.title}" from ${preview.startDate}. Nothing was saved.`, { preview });
+  }));
+
   server.registerTool('get_itinerary', {
     title: 'Get the itinerary',
     description: 'Read the current trip, optionally for a single day. Includes stopIds needed by other tools.',

@@ -172,7 +172,13 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
   function render() {
     const value = data || {};
     const nodes = [];
-    if (value.proposal) {
+    if (value.preview) {
+      const trip = value.preview;
+      nodes.push(header(`Alexa suggests · ${trip.days.length}-day trip`, trip.title, trip), stops(dayStops(trip)));
+      const foot = el('div', 'footer');
+      foot.append(el('span', 'pill', 'Say “yes” to create it'), el('span', '', 'Nothing is saved until you confirm.'));
+      nodes.push(foot);
+    } else if (value.proposal) {
       nodes.push(header('Alexa suggests', 'A change of plan'), el('div', 'banner', value.proposal.summary), changeList(value.proposal.diff || []));
       const foot = el('div', 'footer');
       foot.append(el('span', 'pill', 'Say “yes” to apply'), el('span', '', 'Nothing changes until you confirm.'));
