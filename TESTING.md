@@ -7,11 +7,11 @@ These results cover this integrated app, not the older standalone bundle's repor
 
 From this directory run `npm ci`, then `npm test`.
 
-**75 tests passed, 0 failed** (2026-10-06). This includes the original 38 checks,
-10 voice API, 18 voice-controller, 5 returning-visit and 4 MCP Apps checks. No cloud credentials
+**76 tests passed, 0 failed** (2026-10-06). This includes the original 38 checks,
+10 voice API, 18 voice-controller, 5 returning-visit and 5 MCP Apps checks. No cloud credentials
 or model charges are required.
 
-- 4 MCP Apps tests (`test/apps.test.js`): tool `_meta.ui.resourceUri` links, listed and
+- 5 MCP Apps tests (`test/apps.test.js`): `preview_trip` shows a pending trip without saving it, tool `_meta.ui.resourceUri` links, listed and
   readable `ui://` view with the MCP Apps MIME type and empty CSP allowlist, a bundle with
   no external requests, the real view script's `ui/initialize` handshake, Alexa+ root zoom,
   proposal/weather rendering and rejection of messages not from the host, and the HTTP host

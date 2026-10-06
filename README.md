@@ -119,7 +119,7 @@ The double-click demo launchers and `npm run share` intentionally use guided/dem
   alternatives?” Saying yes only prepares a proposal; applying it needs its own confirmation.
 - Every home trip tool runs through an actual MCP SDK client and Streamable HTTP
   endpoint. The SDK supports MCP 2025-11-25. Expand the activity details to inspect calls.
-- **MCP Apps for screens.** Six trip tools declare a `ui://` view
+- **MCP Apps for screens.** Seven trip tools declare a `ui://` view
   (`text/html;profile=mcp-app`, spec 2026-01-26), the extension Alexa+ uses to render
   interactive cards on Echo Show. The view is one self-contained bundle (fonts inlined,
   empty CSP allowlist) that follows the Alexa+ visual foundations: a 768x480 canvas,

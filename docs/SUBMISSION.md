@@ -56,12 +56,12 @@ participants). The MCP server, the MCP Apps cards and the phone journal are real
 ### How we built it
 
 - **Self-hosted MCP server** (official MCP TypeScript SDK, spec 2025-11-25, Streamable
-  HTTP): 10 tools (`create_trip`, `get_itinerary`, `get_next_stop`, `check_weather`,
+  HTTP): 11 tools (`preview_trip`, `create_trip`, `get_itinerary`, `get_next_stop`, `check_weather`,
   `list_places`, `propose_change`, `apply_change`, `undo_last_change`, `mark_visited`,
   `send_to_phone`), resources for the current trip and each day, and a
   `morning_briefing` prompt. Tools carry annotations; `apply_change` asks the human through
   MCP elicitation when the client supports it.
-- **MCP Apps** (`io.modelcontextprotocol/ui`, 2026-01-26): six tools link a hashed
+- **MCP Apps** (`io.modelcontextprotocol/ui`, 2026-01-26): seven tools link a hashed
   `ui://` view. It is a single self-contained bundle with inlined fonts and an empty CSP
   allowlist. Our simulated Echo Show is a small MCP Apps host: it loads the view through a
   cross-origin sandbox proxy, as the spec requires of web hosts.
@@ -75,7 +75,7 @@ participants). The MCP server, the MCP Apps cards and the phone journal are real
   a reproducible demo. Unknown data is reported as unknown, never as "dry".
 - **State:** each home plan is saved per browser and restored through MCP on return; the
   phone journal persists in IndexedDB with rescue copies.
-- **Quality:** 75 automated tests (real HTTP/MCP journeys, the MCP Apps handshake run
+- **Quality:** 76 automated tests (real HTTP/MCP journeys, the MCP Apps handshake run
   against the real view script, voice-controller timing, restart/restore), plus browser
   QA for the journey, phone storage, printing and the Echo Show cards.
 
