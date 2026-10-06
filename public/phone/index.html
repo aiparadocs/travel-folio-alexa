@@ -849,6 +849,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.serif{f
  <p class="transfer-text">Share the itinerary, or save the whole journal.</p>
  <section id="qr-panel" class="qr-panel" hidden><div id="plan-qr" class="plan-qr"></div><p class="small">Scan with your phone’s camera.<br>Review the itinerary before importing.</p><button type="button" class="text-button" data-action="share-plan">Share itinerary link</button></section>
  <button type="button" class="transfer-option" data-action="smart-transfer"><span data-icon="link"></span><span><strong id="smart-transfer-title">Take the plan to your phone</strong><small id="smart-transfer-help"></small></span></button>
+ <button type="button" class="transfer-option" data-action="share-home" id="share-home" hidden><span data-icon="camera"></span><span><strong>Show memories on Echo Show</strong><small>Sends photos, words and stickers to Travel Folio at home on this Wi‑Fi. Private notes stay here.</small></span></button>
  <button type="button" class="transfer-option" data-action="export-html"><span data-icon="book"></span><span><strong>Keep the whole journal</strong><small>Photos, words and private notes in one HTML file. Reopen on a computer.</small></span></button>
  <details class="transfer-advanced" id="transfer-advanced"><summary>Files, backups &amp; web address</summary>
   <button type="button" class="transfer-option" data-action="copy-link"><span data-icon="link"></span><span><strong>Copy itinerary link</strong><small>Requires a hosted copy of this app. Anyone with the link can read the plan.</small></span></button>
@@ -1465,10 +1466,32 @@ return {NAME,INVOCATION,initial,starter,turn};
   function canLink(){try{getBase();return true;}catch(_){return false;}}
   function currentPlanLink(){return T.link(book,getBase());}
   function refreshTransfer(){
+    $('share-home').hidden=!homeLink();
     $('smart-transfer-title').textContent=canLink()?'Copy the itinerary link':'Save an itinerary file for your phone';
     $('smart-transfer-help').textContent=canLink()?'Stop notes included; photos and private notes stay here.':'Open this app on your phone, then import the JSON file.';
     $('public-app-url').value=publicBase||(canLink()?getBase():'');$('qr-panel').hidden=true;$('plan-qr').innerHTML='';
     if(canLink()){try{const url=currentPlanLink();$('plan-qr').innerHTML=QR.svg(url);$('qr-panel').hidden=false;}catch(e){$('transfer-error').textContent=e.message;}}
+  }
+  // Pairing with the home that sent this plan (from the QR link's ?home= token).
+  const HOME_LINK_KEY='travel-folio-home-link';
+  function homeLink(){
+    if(!/^https?:$/.test(location.protocol))return null;
+    try{const link=JSON.parse(localStorage.getItem(HOME_LINK_KEY)||'null');return link&&link.origin===location.origin&&/^[0-9a-f]{32}$/.test(link.token)?link:null;}catch(_){return null;}
+  }
+  async function shareHome(){
+    const link=homeLink();
+    if(!link){toast('Open the plan from the home QR code first.');return;}
+    const items=J.ordered(book).filter(J.hasMemory);
+    if(!items.length){toast('Add a photo, a few words or a sticker first.');return;}
+    const count=items.length+' memor'+(items.length===1?'y':'ies');
+    if(!confirm('Show '+count+' on the Echo Show at home?\n\nPhotos, words and stickers are sent to Travel Folio on this home network. Private trip notes, packing and planning notes stay on this phone.'))return;
+    const payload={title:book.title,place:book.place,items:items.map(s=>({day:s.day,time:s.time,title:s.title,caption:s.caption,photo:s.photo||null,stickers:s.stickers.filter(k=>STICKERS[k]).map(k=>({label:STICKERS[k].label,data:STICKERS[k].data}))}))};
+    try{
+      const response=await fetch('/api/memories',{method:'POST',headers:{'content-type':'application/json','x-folio-home':link.token},body:JSON.stringify(payload)});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||'The home did not accept the memories.');
+      closeSheet(true);toast('Sent '+count+'. At home, say “Show our memories”.');
+    }catch(e){$('transfer-error').textContent=e instanceof TypeError?'Travel Folio at home cannot be reached. Use the same Wi‑Fi and keep the home computer running.':e.message;}
   }
   function openTransfer(){$('transfer-error').textContent='';$('copy-fallback').hidden=true;$('transfer-advanced').open=false;refreshTransfer();showSheet('transfer-dialog');}
   async function copyPlanLink(){
@@ -1749,6 +1772,7 @@ function photoDimensions(buffer) {
       case 'delete-stop':await deleteStop();break;
       case 'smart-transfer':if(canLink())await copyPlanLink();else{download(JSON.stringify(J.planOnly(book),null,2),'application/json;charset=utf-8','journey-plan.json');toast('Saving the itinerary file…');}break;
       case 'export-plan':download(JSON.stringify(J.planOnly(book),null,2),'application/json;charset=utf-8','journey-plan.json');toast('Saving the itinerary file…');break;
+      case 'share-home':await shareHome();break;
       case 'export-html':download(portableHTML(),'text/html;charset=utf-8','my-journey.html');toast('Saving your journal, including photos and notes…');break;
       case 'export-data':download(JSON.stringify(book),'application/json;charset=utf-8','my-journey-backup.json');toast('Saving your backup…');break;
       case 'copy-link':await copyPlanLink();break;
@@ -1799,6 +1823,11 @@ function photoDimensions(buffer) {
   {const st=readStash();if(st){if(JSON.stringify(st.book)!==JSON.stringify(book))recovered=st;else dropStash();}}
   await Promise.all([paperFontsReady,paperTextureReady]);
   $('loading').hidden=true;$('application').hidden=false;render();
+  {const token=new URLSearchParams(location.search).get('home');
+   if(token){
+    if(/^[0-9a-f]{32}$/.test(token)){try{localStorage.setItem(HOME_LINK_KEY,JSON.stringify({token,origin:location.origin}));}catch(_){}}
+    try{const u=new URL(location.href);u.searchParams.delete('home');history.replaceState(null,'',u.pathname+u.search+u.hash);}catch(_){}
+   }}
   if(location.hash.startsWith('#trip=')){
     try{const incoming=T.decode(location.hash.slice(6));await acceptImport(incoming);}catch(e){toast(e.message);}
     try{history.replaceState(null,'',location.href.split('#')[0]);}catch(_){}

@@ -251,7 +251,8 @@ export class ConversationSession {
     if (action === 'memories') {
       const day = input.day === undefined ? undefined : z.number().int().min(1).max(14).parse(input.day);
       const result = await this.tool('show_memories', day === undefined ? {} : { day });
-      return `${result.text} They are on the screen now.`;
+      const { title, items } = result.data.memories;
+      return `Here ${items.length === 1 ? 'is a memory' : `are ${items.length} memories`} from “${title}”${day ? `, day ${day}` : ''}. Let’s relive the trip together.`;
     }
     if (action === 'open' || action === 'repeat') return this.trip ? `Your ${this.trip.days.length}-day ${cityName(this.trip.city, false)} plan is here. Ask about the weather, make a change, or take it to your phone.` : 'Where would you like to go: Kyoto or Seattle? You can also tell me the number of days and what you enjoy.';
     if (action === 'create') {
