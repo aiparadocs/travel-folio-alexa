@@ -8,9 +8,9 @@ These results cover this integrated app, not the older standalone bundle's repor
 
 From this directory run `npm ci`, then `npm test`.
 
-**95 tests passed, 0 failed** (2026-10-09). This includes the original 38 checks,
+**96 tests passed, 0 failed** (2026-10-09). This includes the original 38 checks,
 10 voice API, 18 voice-controller, 5 returning-visit, 5 MCP Apps, 5 memory-sharing,
-10 stamp (`test/stamps.test.js`) and 4 phone-design (`test/phone-design.test.js`) checks. No cloud credentials
+10 stamp (`test/stamps.test.js`) and 5 phone-design (`test/phone-design.test.js`) checks. No cloud credentials
 or model charges are required.
 
 - 5 MCP Apps tests (`test/apps.test.js`): `preview_trip` shows a pending trip without saving it, tool `_meta.ui.resourceUri` links, listed and
@@ -112,7 +112,7 @@ images were observed. Mobile preview fits 390px. The 26 print checks also cover
 60-line notes and 100-line captions without dropping content. Printer hardware
 and paper/scale overrides in the native print dialog are outside these checks.
 
-Typography uses locally bundled Caveat handwritten headings and Nunito body text.
+Typography uses locally bundled Caveat handwritten headings and Nunito body text. (Superseded on 2026-10-09; see "Kippu & stamp redesign".)
 Both faces loaded at 1280, 768, 390 and 320px without horizontal overflow or browser
 warnings/errors. All 26 print checks passed after the font change; paper layout
 waits for fonts before measuring. An exported journal loaded both embedded fonts
@@ -168,7 +168,7 @@ The home page, Echo Show card and host, phone journal and print sheets were rest
 (indigo/vermilion, tickets, departure board, ink stamps, light kraft memories). Element
 IDs, buttons and server/MCP behaviour are unchanged.
 
-- `npm test`: 95 passed. Browser QA (run with a small Node runner around these files):
+- `npm test`: 96 passed. Browser QA (run with a small Node runner around these files):
   journey 26, states 8, voice 23, phone 20, print 26, memory-layout 48 — all passed.
 - No horizontal overflow on the home page at 320–1440px or in the journal at 1280/390/320px.
 - Print: the sample journal is one A4 sheet in all three modes; preview and real PDF page

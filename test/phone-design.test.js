@@ -36,3 +36,9 @@ test('phone journal uses the ticket logo and renders 済 and station stamps', ()
   assert.match(html, /stationStamp\(s,'folio-memory-stamp'\)/);
   assert.doesNotMatch(html, /A little room for possibility\./);
 });
+
+test('phone journal waits for the faces its print sheets use before measuring pages', () => {
+  const wait = html.match(/const paperFontsReady=[\s\S]*?:Promise\.resolve\(\);/)[0];
+  for (const face of ['Folio UD', 'Folio Display', 'Folio Dot', 'Folio Pen']) assert.ok(wait.includes(face), face);
+  assert.doesNotMatch(wait, /Nunito|Caveat/);
+});

@@ -1685,7 +1685,7 @@ return {NAME,INVOCATION,initial,starter,turn};
     }));
   }
   const paperFontsReady=document.fonts?Promise.all([
-    document.fonts.load('400 10pt Nunito'),document.fonts.load('600 29pt Caveat')
+    document.fonts.load('400 10pt "Folio UD"'),document.fonts.load('700 11.5pt "Folio UD"'),document.fonts.load('26pt "Folio Display"'),document.fonts.load('10pt "Folio Dot"'),document.fonts.load('600 10.5pt "Folio Pen"')
   ]).then(()=>document.fonts.ready).catch(()=>{}):Promise.resolve();
   const paperTextureReady=(()=>{
     const src=getComputedStyle(document.documentElement).getPropertyValue('--kraft-grain').trim().match(/^url\(["']?(.*?)["']?\)$/)?.[1];
