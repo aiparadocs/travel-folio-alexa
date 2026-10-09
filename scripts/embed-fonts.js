@@ -7,7 +7,7 @@ css = css.replace(/url\('\.\/([^']+\.woff2)'\)/g, (_, name) => {
   const bytes = fs.readFileSync(new URL(name, fontDir));
   return `url('data:font/woff2;base64,${bytes.toString('base64')}')`;
 });
-const licenses = ['Nunito-OFL.txt', 'Caveat-OFL.txt'].map(name =>
+const licenses = ['delagothicone-OFL.txt', 'dotgothic16-OFL.txt', 'bizudpgothic-OFL.txt', 'kleeone-OFL.txt'].map(name =>
   fs.readFileSync(new URL(name, fontDir), 'utf8')).join('\n\n');
 const block = `<style id="folio-fonts">\n/*\n${licenses}\n*/\n${css}\n</style>`;
 const html = fs.readFileSync(target, 'utf8');

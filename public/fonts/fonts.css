@@ -1,13 +1,20 @@
-/* Google Fonts Latin variable subsets; licenses are alongside the font files. */
-@font-face {
-  font-family: 'Nunito'; font-style: normal; font-weight: 400 800; font-display: swap;
-  src: url('./nunito-latin-variable.woff2') format('woff2');
-}
-@font-face {
-  font-family: 'Caveat'; font-style: normal; font-weight: 500 700; font-display: swap;
-  src: url('./caveat-latin-variable.woff2') format('woff2');
-}
+/* Travel Folio fonts: small Google Fonts subsets (SIL OFL 1.1, licences alongside; see README.md).
+   Imported by /kippu.css (home, Echo Show host) and embedded into the phone journal by scripts/embed-fonts.js.
+   Family names are prefixed so a locally installed BIZ UDPGothic still renders Japanese text. */
+@font-face { font-family: 'Folio Display'; font-weight: 400; font-display: swap; src: url('./dela-gothic-one.woff2') format('woff2'); }
+@font-face { font-family: 'Folio Dot'; font-weight: 400; font-display: swap; src: url('./dotgothic16.woff2') format('woff2'); }
+/* BIZ UDPGothic draws en/em dashes as hairlines; leave U+2013/2014 to the next font in the stack. */
+@font-face { font-family: 'Folio UD'; font-weight: 400; font-display: swap; src: url('./biz-udpgothic-400.woff2') format('woff2');
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2190-2193, U+2602, U+2713; }
+@font-face { font-family: 'Folio UD'; font-weight: 700; font-display: swap; src: url('./biz-udpgothic-700.woff2') format('woff2');
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2190-2193, U+2602, U+2713; }
+@font-face { font-family: 'Folio Pen'; font-weight: 600; font-display: swap; src: url('./klee-one-600.woff2') format('woff2'); }
 :root {
-  --font-body: 'Nunito', 'Hiragino Maru Gothic ProN', 'Yu Gothic', Meiryo, sans-serif;
-  --font-title: 'Caveat', 'Nunito', 'Hiragino Maru Gothic ProN', 'Yu Gothic', Meiryo, sans-serif;
+  --font-display: 'Folio Display', 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
+  --font-dot: 'Folio Dot', 'BIZ UDGothic', ui-monospace, monospace;
+  --font-ui: 'Folio UD', 'Segoe UI', 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic', Meiryo, system-ui, sans-serif;
+  --font-pen: 'Folio Pen', 'Klee One', 'Yu Gothic', cursive;
+  /* Names used by the phone journal's older rules. */
+  --font-body: var(--font-ui);
+  --font-title: var(--font-display);
 }
