@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import '../public/stamps.js';
 import { CITIES } from '../src/domain/catalog.js';
 
@@ -74,4 +75,11 @@ test('defs: the ink filter and ticket logo are defined once for every page', () 
   assert.match(defs, /<filter id="tf-ink"/);
   assert.match(defs, /<symbol id="tf-logo"/);
   assert.match(defs, /<mask id="tf-logo-cut">/);
+});
+
+test('defs: the home page inlines the exact shared art defs', () => {
+  const html = fs.readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+  assert.ok(html.includes(globalThis.FolioStamps.defs), 'public/index.html must contain FolioStamps.defs verbatim');
+  assert.match(html, /<script src="\/stamps\.js" defer><\/script>/);
+  assert.doesNotMatch(html, /planner-spark|postcard|class="journey"/, 'the old sparkle, postcard and Plan→Go→Keep row are gone');
 });
