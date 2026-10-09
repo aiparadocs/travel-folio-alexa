@@ -3,6 +3,12 @@ import { z } from 'zod';
 import { TravelTools } from './mcp-client.js';
 import { parseGuided, isVoiceConfirmation, GUIDED_HELP } from './guided.js';
 import { converseWithTools } from './bedrock.js';
+import { CITIES } from '../domain/catalog.js';
+import { todayIn } from '../domain/planner.js';
+
+// A model does not know the date; "this Saturday" needs each city's today.
+const datesToday = (now = new Date()) => Object.fromEntries(Object.entries(CITIES).map(([id, city]) =>
+  [id, `${todayIn(city.timezone, now)} (${new Intl.DateTimeFormat('en-US', { timeZone: city.timezone, weekday: 'long' }).format(now)})`]));
 
 const tripInput = z.object({
   city: z.enum(['kyoto', 'seattle']).default('kyoto'),
@@ -381,12 +387,14 @@ export class ConversationSession {
         reply = await converseWithTools({
           modelId: this.bedrockModelId, region: this.region,
           messages: voice ? this.messages.map((entry, index) => index === this.messages.length - 1 ? { ...entry, text: `${entry.text}\n\nReply in ${language === 'ja-JP' ? 'Japanese' : 'English'} for this voice conversation.` } : entry) : this.messages,
-          context: { trip: this.trip, proposal: this.proposal, weatherMode: this.config.weatherMode },
+          context: { today: datesToday(), trip: this.trip, proposal: this.proposal, weatherMode: this.config.weatherMode },
           tools: await this.tools.list(), execute: (name, args) => this.modelTool(name, args), send: this.bedrockSend,
         });
         this.pruneProposal();
         if (this.proposal) reply = `${this.proposal.summary} Review the proposal and use Confirm to apply it.`;
       } catch (error) {
+        // The AWS error names the cause (model, region, access); it never contains credentials.
+        console.error(`Bedrock request failed: ${error.name}: ${error.message}`);
         throw new UserError(`Bedrock could not finish this request. No changes were applied. Use the buttons or try again. ${error.name === 'AbortError' ? 'The request timed out.' : 'Check the model, region and AWS access configuration.'}`, 502);
       }
     } else reply = GUIDED_HELP;

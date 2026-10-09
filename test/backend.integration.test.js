@@ -112,6 +112,23 @@ test('concurrent confirmations cannot apply twice or replace another proposal', 
   assert.equal((await a.state()).proposal.proposalId, next.data.proposal.proposalId);
 });
 
+test('Bedrock adapter sends only type, properties and required at the top of a tool schema', async () => {
+  // Amazon Nova rejects other top-level keys such as $schema with a ValidationException.
+  let request;
+  await converseWithTools({
+    modelId: 'test-model', region: 'test-region', messages: [{ role: 'user', text: 'Plan Kyoto' }], context: {},
+    tools: [
+      { name: 'create_trip', inputSchema: { $schema: 'http://json-schema.org/draft-07/schema#', type: 'object', title: 'x', additionalProperties: false, properties: { city: { type: 'string', enum: ['kyoto'] } }, required: ['city'] } },
+      { name: 'get_itinerary', inputSchema: { type: 'object', $schema: 'http://json-schema.org/draft-07/schema#' } },
+    ],
+    execute: async () => ({}),
+    send: async (input) => { request = structuredClone(input); return { output: { message: { role: 'assistant', content: [{ text: 'ok' }] } } }; },
+  });
+  const [create, itinerary] = request.toolConfig.tools.map((tool) => tool.toolSpec.inputSchema.json);
+  assert.deepEqual(create, { type: 'object', properties: { city: { type: 'string', enum: ['kyoto'] } }, required: ['city'] });
+  assert.deepEqual(itinerary, { type: 'object', properties: {} });
+});
+
 test('Bedrock adapter sends tool results and rejects model-generated confirmation', async () => {
   const requests = [];
   const executed = [];
@@ -158,6 +175,22 @@ test('Bedrock create is intercepted as a proposal and cannot overwrite the itine
   const created = await a.post({ action: 'confirm', proposalId: reply.data.proposal.proposalId });
   assert.equal(created.data.trip.city, 'kyoto');
   assert.equal(count, 2, 'confirmation does not call a cloud model');
+});
+
+test('Bedrock is told today\'s date in each city, so "this Saturday" is not guessed', async (t) => {
+  let system;
+  const running = await startServer({
+    port: 0, agentMode: 'bedrock', weatherMode: 'demo', bedrockModelId: 'test-model', region: 'test-region',
+    bedrockSend: async (input) => { system = input.system[0].text; return { output: { message: { role: 'assistant', content: [{ text: 'Which day?' }] } } }; },
+  });
+  t.after(() => running.close());
+  const a = await browser(running);
+  assert.equal((await a.post({ message: 'Plan Kyoto from this Saturday.' }, 'chat')).status, 200);
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const weekday = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', weekday: 'long' }).format(new Date());
+  assert.ok(system.includes(`"kyoto":"${today} (${weekday})"`), system);
+  assert.match(system, /"seattle":"\d{4}-\d{2}-\d{2} \(\w+day\)"/);
+  assert.match(system, /relative dates/i);
 });
 
 test('guided bilingual commands and model loop have strict bounds', async () => {
