@@ -1,21 +1,24 @@
-:root { --bg: #e9e4d8; --bezel: #2f2c28; --screen: #f6f2e8; --ink: #1e2329; --muted: #5f6b5a; --accent: #3c5a47; --accent-soft: #dfeadf; }
+:root { --bg: #E9E6DD; --bezel: #23252B; --screen: #F7F5EF; }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: 'Nunito', system-ui, sans-serif; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--sumi); font-family: var(--font-ui); }
 .stage { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px; }
 /* Echo Show 8: 1280x800 panel = Alexa+'s 768x480 design canvas at zoom 1.667. */
-.device { width: min(100%, calc((100vh - 120px) * 1.6)); aspect-ratio: 1328 / 848; background: var(--bezel); border-radius: 28px; padding: 24px; box-shadow: 0 24px 60px rgba(60, 50, 30, .28), inset 0 0 0 1px #45403a; }
+.device { width: min(100%, calc((100vh - 120px) * 1.6)); aspect-ratio: 1328 / 848; background: var(--bezel); border-radius: 28px; padding: 24px; box-shadow: 0 24px 60px #1c2f5c38, inset 0 0 0 1px #3a3d45; }
 .screen { position: relative; width: 1280px; height: 800px; transform-origin: 0 0; background: var(--screen); border-radius: 6px; overflow: hidden; }
 .status { position: absolute; inset: 0 0 auto 0; display: flex; justify-content: space-between; padding: 18px 28px; font-size: 22px; color: var(--muted); font-weight: 700; z-index: 2; }
-.sim { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 4px 14px; }
-.idle { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; }
-.idle-greeting { margin: 0; font-family: 'Caveat', cursive; font-weight: 700; font-size: 120px; line-height: 1; color: var(--accent); }
-.idle-time { margin: 0; font-size: 44px; font-weight: 600; color: var(--muted); }
-.idle-hint { margin: 18px 0 0; font-size: 32px; color: var(--ink); background: #fffdf7; border: 2px solid #e4ddcc; border-radius: 999px; padding: 12px 28px; }
+#clock { font-family: var(--font-dot); font-weight: 400; letter-spacing: .04em; }
+.sim { background: #1c2f5c14; color: var(--ai); border-radius: 999px; padding: 4px 14px; }
+.idle { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
+.idle-greeting { margin: 0; font: 112px/1.05 var(--font-display); color: var(--ai); }
+.idle-time { margin: 0; font: 46px var(--font-dot); letter-spacing: .06em; color: var(--muted); }
+.idle-hint { position: relative; margin: 22px 0 0; font-size: 30px; font-weight: 700; color: var(--ai); padding: 14px 30px 14px 36px; border-radius: 10px;
+  background-color: var(--kippu); background-image: repeating-linear-gradient(135deg, var(--kippu-line) 0 2px, transparent 2px 7px); }
+.idle-hint::before { content: ""; position: absolute; left: -11px; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; background: var(--screen); }
 .view { position: absolute; inset: 66px 0 112px 0; display: flex; justify-content: center; align-items: center; }
-.view iframe { border: 0; background: transparent; border-radius: 16px; box-shadow: 0 8px 28px rgba(60, 50, 30, .12); }
+.view iframe { border: 0; background: transparent; border-radius: 16px; box-shadow: 0 8px 28px #1c2f5c1f; }
 .caption { position: absolute; left: 0; right: 0; bottom: 0; height: 112px; padding: 14px 40px 0; z-index: 3; }
-.caption p { margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; max-height: 2.6em; overflow: hidden; color: var(--ink); }
-.bar { display: block; height: 6px; width: 180px; border-radius: 6px; background: linear-gradient(90deg, #6fbf87, var(--accent), #6fbf87); margin-bottom: 10px; }
+.caption p { margin: 0; font-size: 26px; line-height: 1.3; font-weight: 700; max-height: 2.6em; overflow: hidden; color: var(--sumi); }
+.bar { display: block; height: 6px; width: 180px; border-radius: 6px; background: linear-gradient(90deg, var(--shu), var(--ki)); margin-bottom: 10px; }
 .note { max-width: 880px; margin: 0; font-size: 14px; color: var(--muted); text-align: center; line-height: 1.5; }
-.note a { color: var(--accent); }
+.note a { color: var(--ai); }
 [hidden] { display: none !important; }

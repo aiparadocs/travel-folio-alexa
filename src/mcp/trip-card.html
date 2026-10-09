@@ -80,9 +80,9 @@ h1 { margin: 2px 0 0; font: 34px/1.1 var(--display); color: var(--ai); }
 .confirm b { display: block; font: 23px var(--display); color: var(--ai); }
 .confirm small { font-size: 15px; font-weight: 700; color: var(--muted); }
 /* applied */
-.banner { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--ai); padding-right: 140px; }
-/* Below the day tabs, over the banner and the first board row, like a stamp on a ticket. */
-.ok-stamp { position: absolute; right: 24px; top: 62px; width: 112px; height: 112px; animation: land .36s .15s cubic-bezier(.2, .9, .3, 1.2) both; }
+.banner { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--ai); }
+/* Pressed in the free corner beside the hints, overlapping the board edge like a real stamp. */
+.ok-stamp { position: absolute; right: 40px; bottom: 14px; width: 112px; height: 112px; animation: land .36s .15s cubic-bezier(.2, .9, .3, 1.2) both; }
 .ok-stamp svg { width: 100%; height: 100%; transform: rotate(-12deg); }
 @keyframes land { 0% { opacity: 0; transform: scale(1.7); } 65% { opacity: 1; transform: scale(.94); } 100% { opacity: 1; transform: scale(1); } }
 .empty { font-size: 20px; color: var(--muted); }
@@ -182,7 +182,7 @@ h1 { margin: 2px 0 0; font: 34px/1.1 var(--display); color: var(--ai); }
     if (text != null) node.textContent = String(text);
     return node;
   }
-  const kinds = { coffee: 'Coffee', food: 'Food', walk: 'Outdoors', shop: 'Shops', indoor: 'Indoors' };
+  const kinds = { coffee: 'Coffee', food: 'Food', walk: 'Outdoors', shop: 'Shops', indoor: 'Indoors', stay: 'Hotel', train: 'Transit' };
   const dateLabel = (iso) => new Intl.DateTimeFormat('en', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`));
   function pickDay(value) {
     const changed = value?.proposal?.diff || value?.diff;
