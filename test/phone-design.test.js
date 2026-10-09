@@ -14,3 +14,8 @@ test('phone journal embeds the kippu fonts and their licences, not the old handw
   for (const notice of ['Dela Gothic Project Authors', 'DotGothic16 Project Authors', 'BIZ UDGothic Project Authors', 'Klee Project Authors']) assert.ok(block.includes(notice), notice);
   assert.match(block, /--font-title: var\(--font-display\)/, 'older journal rules map onto the new faces');
 });
+
+test('phone journal paper is the approved light kraft texture', () => {
+  const light = read('../public/textures/kraft-paper-light.webp').toString('base64');
+  assert.ok(html.includes(`--kraft-grain:url("data:image/webp;base64,${light}")`));
+});

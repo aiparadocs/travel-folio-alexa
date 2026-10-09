@@ -1,7 +1,7 @@
 // Keep the journal's kraft paper texture available in saved, offline HTML.
 import fs from 'node:fs';
 
-const texture = new URL('../public/textures/kraft-paper.webp', import.meta.url);
+const texture = new URL('../public/textures/kraft-paper-light.webp', import.meta.url);
 const target = new URL('../public/phone/index.html', import.meta.url);
 const bytes = fs.readFileSync(texture);
 const html = fs.readFileSync(target, 'utf8');
