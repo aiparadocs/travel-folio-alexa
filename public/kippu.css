@@ -1,0 +1,44 @@
+/* Travel Folio "kippu & stamp" design: fonts, colours and parts shared by the home page
+   and the simulated Echo Show. The MCP card and the phone journal inline their own copies. */
+@font-face { font-family: 'Folio Display'; font-weight: 400; font-display: swap; src: url('/fonts/dela-gothic-one.woff2') format('woff2'); }
+@font-face { font-family: 'Folio Dot'; font-weight: 400; font-display: swap; src: url('/fonts/dotgothic16.woff2') format('woff2'); }
+@font-face { font-family: 'Folio UD'; font-weight: 400; font-display: swap; src: url('/fonts/biz-udpgothic-400.woff2') format('woff2'); }
+@font-face { font-family: 'Folio UD'; font-weight: 700; font-display: swap; src: url('/fonts/biz-udpgothic-700.woff2') format('woff2'); }
+@font-face { font-family: 'Folio Pen'; font-weight: 600; font-display: swap; src: url('/fonts/klee-one-600.woff2') format('woff2'); }
+
+:root {
+  --ai: #1C2F5C; --ai-deep: #14213F; --ai-soft: #E6EAF2;
+  --shu: #E5452B; --shu-deep: #C23A22;
+  --kippu: #DCEFE5; --kippu-line: #1c2f5c14;
+  --washi: #F7F5EF; --paper: #FFFFFF;
+  --sumi: #191919; --muted: #565C68; --line: #DDD8CC;
+  --ki: #F7B500; --ame: #2B63B5; --ame-soft: #EAF1FB;
+  --board: #16181D; --row: #20242C; --flap: #2C313B;
+  --focus: #C23A22;
+  --font-display: 'Folio Display', 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
+  --font-dot: 'Folio Dot', 'BIZ UDGothic', ui-monospace, monospace;
+  --font-ui: 'Folio UD', 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic', Meiryo, system-ui, sans-serif;
+  --font-pen: 'Folio Pen', 'Klee One', 'Yu Gothic', cursive;
+  color-scheme: light; font-synthesis: none;
+}
+
+.art-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* Ticket: mint card with a security pattern, notches and a perforated stub. */
+.ticket { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--stub, 96px); color: var(--ai);
+  background-color: var(--kippu); background-image: repeating-linear-gradient(135deg, var(--kippu-line) 0 2px, transparent 2px 7px); border-radius: 10px; }
+.ticket::before, .ticket::after { content: ""; position: absolute; right: var(--stub, 96px); width: 22px; height: 22px; margin-right: -11px; border-radius: 50%; background: var(--notch, var(--washi)); }
+.ticket::before { top: -11px; }
+.ticket::after { bottom: -11px; }
+
+/* Split-flap characters for departure boards. */
+.flaps { display: inline-flex; gap: 2px; }
+.flap { position: relative; display: inline-block; width: 22px; height: 34px; background: var(--flap); color: #fff; border-radius: 3px; font: 24px/34px var(--font-dot); text-align: center; }
+.flap::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #000b; }
+.flap.colon { width: 9px; background: none; }
+.flap.colon::after { display: none; }
+
+/* Stamps land with a small press. */
+@keyframes stamp-land { 0% { opacity: 0; transform: scale(1.6) rotate(-6deg); } 62% { opacity: 1; transform: scale(.94); } 100% { opacity: 1; transform: scale(1); } }
+.stamp-land { animation: stamp-land .34s cubic-bezier(.2, .9, .3, 1.2) both; }
+@media (prefers-reduced-motion: reduce) { .stamp-land { animation: none; } }
