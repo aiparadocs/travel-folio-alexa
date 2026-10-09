@@ -6,96 +6,125 @@
 <title>Travel Folio trip card</title>
 <style>
 /*__FONTS__*/
-/* Alexa+ visual foundations: 768x480 base canvas, one root zoom per device. */
+/* Alexa+ visual foundations: 768x480 base canvas, one root zoom per device. Kippu & stamp design. */
 :root {
-  --card: #14181E; --card-inner: #1B2028; --ink: #F4F2EC; --muted: #A9B0BB; --line: #2A313C;
-  --accent: #9FD3A8; --accent-ink: #10261A; --rain: #8EC5FF; --warn: #F2B880; --del: #E59A9A;
-  --button: #2D415E;
-  --hand: 'Caveat', 'Segoe Print', cursive; --body: 'Nunito', system-ui, sans-serif;
+  --ai: #1C2F5C; --shu: #E5452B; --shu-text: #C23A22; --kippu: #DCEFE5; --kippu-line: #1c2f5c14;
+  --card: #FFFDF8; --sumi: #191919; --muted: #5A5F6A; --ki: #F7B500; --ame: #2B63B5; --ame-soft: #EEF3FB;
+  --board: #16181D; --row: #20242C; --flap: #2C313B;
+  --display: 'Folio Display', 'BIZ UDPGothic', sans-serif; --dot: 'Folio Dot', monospace;
+  --ui: 'Folio UD', 'BIZ UDPGothic', system-ui, sans-serif; --pen: 'Folio Pen', cursive;
 }
-:root[data-theme="light"] {
-  --card: #FFFFFF; --card-inner: #FAF9FB; --ink: #1E2329; --muted: #5C6470; --line: #E3E1EA;
-  --accent: #3C5A47; --accent-ink: #FFFFFF; --rain: #2D6CB5; --warn: #9A5A12; --del: #A33A3A; --button: #E8EEF5;
-}
+:root[data-theme="dark"] { --card: #14213F; --sumi: #F4F2EC; --muted: #AEB6C6; --ai: #DCE4F5; --kippu: #2A3B63; --kippu-line: #ffffff10; --ame-soft: #1E2E52; --shu-text: #FF8A73; }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: transparent; }
-body { font-family: var(--body); color: var(--ink); -webkit-font-smoothing: antialiased; }
-#root { width: 768px; height: 480px; background: var(--card); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+body { font-family: var(--ui); color: var(--sumi); -webkit-font-smoothing: antialiased; }
+.art-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+#root { position: relative; width: 768px; height: 480px; background: var(--card); border-radius: 16px; padding: 22px 24px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
 header { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
-.eyebrow { font-size: 14px; color: var(--muted); font-weight: 700; letter-spacing: .02em; }
-h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40px; line-height: 1; }
-.days { display: flex; gap: 8px; }
-.days button { font: inherit; font-size: 16px; font-weight: 700; color: var(--ink); background: var(--card-inner); border: 1px solid var(--line); border-radius: 9999px; padding: 8px 16px; min-height: 44px; cursor: pointer; }
-.days button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.banner { display: flex; align-items: center; gap: 12px; background: var(--card-inner); border-radius: 12px; padding: 12px 16px; font-size: 18px; font-weight: 700; }
-.banner small { display: block; font-size: 14px; color: var(--muted); font-weight: 600; }
-.banner .badge { margin-left: auto; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 9999px; padding: 4px 10px; white-space: nowrap; }
-.rain { color: var(--rain); }
-.row { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; flex: 1 1 auto; min-height: 148px; max-height: 220px; }
-.row::-webkit-scrollbar { display: none; }
-.stop { flex: 0 0 196px; background: var(--card-inner); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; border: 2px solid transparent; }
-.stop.risk { border-color: var(--rain); }
-.stop.done { opacity: .55; }
-.time { font-size: 20px; font-weight: 800; }
-.title { font-family: var(--hand); font-size: 26px; line-height: 1.05; font-weight: 700; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.meta { font-size: 14px; color: var(--muted); font-weight: 600; margin-top: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bars { display: flex; align-items: flex-end; gap: 4px; height: 40px; }
-.bars span { flex: 1; background: var(--rain); border-radius: 4px 4px 0 0; min-height: 3px; opacity: .85; }
-.hours { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
-.changes { display: grid; gap: 8px; }
-.counts { display: flex; gap: 12px; }
-.count { display: flex; align-items: baseline; gap: 8px; background: var(--card-inner); border-radius: 9999px; padding: 8px 20px; font-size: 20px; font-weight: 800; }
-.count b { font-size: 30px; color: var(--accent); }
-.change { display: grid; grid-template-columns: 76px 1fr; gap: 4px 12px; align-items: baseline; background: var(--card-inner); border-radius: 12px; padding: 12px 16px; }
-.change .op { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
-.change del { color: var(--del); font-size: 16px; grid-column: 2; }
-.change ins { text-decoration: none; font-size: 20px; font-weight: 800; grid-column: 2; }
-.footer { display: flex; align-items: center; gap: 12px; margin-top: auto; font-size: 16px; color: var(--muted); font-weight: 600; }
-.pill { background: var(--button); color: var(--ink); border-radius: 9999px; padding: 8px 16px; font-weight: 800; }
-.hints { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; }
-.hints span { font-size: 16px; font-weight: 700; color: var(--muted); border: 1px solid var(--line); border-radius: 9999px; padding: 6px 14px; }
-.ok { color: var(--accent); }
+.eyebrow { font: 15px var(--dot); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
+h1 { margin: 2px 0 0; font: 34px/1.1 var(--display); color: var(--ai); }
+.days { display: flex; gap: 6px; }
+.days button { font: 16px var(--dot); letter-spacing: .06em; text-transform: uppercase; color: var(--ai); background: transparent; border: 2px solid #1c2f5c40; border-radius: 8px; padding: 8px 16px; min-height: 44px; cursor: pointer; }
+.days button[aria-pressed="true"] { background: var(--ai); color: var(--card); border-color: var(--ai); }
+/* departure board */
+.board { background: var(--board); border-radius: 12px; padding: 10px 12px 12px; color: #fff; }
+.bh, .brow { display: grid; grid-template-columns: 112px minmax(0, 1fr) 196px; gap: 12px; align-items: center; }
+.bh { font: 12px var(--dot); letter-spacing: .14em; color: var(--ki); padding: 0 6px 4px; }
+.brow { background: var(--row); border-radius: 8px; padding: 6px; margin-top: 5px; }
+.brow.risk { box-shadow: inset 0 0 0 2px #5B8FE0; }
+.brow.done b { opacity: .6; }
+.brow b { font-size: 20px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brow small { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #B8BFCC; white-space: nowrap; }
+.more { font: 13px var(--dot); color: #B8BFCC; letter-spacing: .08em; padding: 6px 6px 0; }
+.flaps { display: flex; gap: 2px; }
+.flap { position: relative; width: 20px; height: 32px; background: var(--flap); border-radius: 3px; font: 22px/32px var(--dot); text-align: center; color: #fff; animation: flip .32s ease-out both; }
+.flap::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #000b; }
+.flap.colon { width: 8px; background: none; }
+.flap.colon::after { display: none; }
+@keyframes flip { from { transform: rotateX(90deg); opacity: .4; } to { transform: none; opacity: 1; } }
+.tag { font: 12px var(--dot); border-radius: 4px; padding: 1px 6px; letter-spacing: .08em; }
+.tag.next { background: var(--ki); color: #000; }
+.tag.rain { background: var(--ame); color: #fff; }
+.tag.done { background: var(--shu); color: #fff; }
+/* weather */
+.wx { display: flex; align-items: center; gap: 16px; background: var(--ame-soft); border-radius: 12px; padding: 10px 14px; }
+.wx .t { min-width: 0; }
+.wx .t b { display: block; font-size: 19px; color: var(--ame); }
+.wx .t b.dry { color: var(--ai); }
+.wx .t small { font-size: 14px; font-weight: 700; color: var(--muted); }
+.bars { margin-left: auto; display: flex; align-items: flex-end; gap: 3px; height: 46px; flex: none; }
+.bars i { width: 11px; min-height: 3px; border-radius: 2px; background: radial-gradient(var(--ame) 1.6px, transparent 1.9px) 0 0/5px 5px; }
+.badge { font-size: 12px; font-weight: 700; color: var(--muted); border: 1.5px solid #5a5f6a55; border-radius: 9999px; padding: 2px 9px; white-space: nowrap; align-self: flex-start; }
+/* hints as ticket stubs */
+.hints { display: flex; align-items: center; gap: 8px; margin-top: auto; white-space: nowrap; font-size: 15px; font-weight: 700; color: var(--muted); }
+.stub { position: relative; font-size: 14.5px; color: var(--ai); background: var(--kippu); padding: 7px 14px 7px 18px; border-radius: 6px; }
+.stub::before { content: ""; position: absolute; left: -6px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--card); }
+/* proposal: two tickets */
+.pairs { display: grid; gap: 10px; }
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr); align-items: center; gap: 10px; }
+.tk { position: relative; background-color: var(--kippu); background-image: repeating-linear-gradient(135deg, var(--kippu-line) 0 2px, transparent 2px 7px); border-radius: 10px; padding: 12px 16px; color: var(--ai); min-height: 92px; }
+.tk::before, .tk::after { content: ""; position: absolute; top: 50%; width: 18px; height: 18px; margin-top: -9px; border-radius: 50%; background: var(--card); }
+.tk::before { left: -9px; } .tk::after { right: -9px; }
+.tk small { font: 13px var(--dot); letter-spacing: .08em; opacity: .8; }
+.tk b { display: block; font: 20px/1.25 var(--display); margin: 3px 0 2px; overflow-wrap: anywhere; }
+.tk span { font-size: 15px; font-weight: 700; }
+.tk.old { opacity: .78; }
+.tk.old b { text-decoration: line-through; text-decoration-color: var(--shu); text-decoration-thickness: 3px; }
+.tk.empty { background: transparent; border: 2px dashed #1c2f5c40; display: grid; place-items: center; font: 14px var(--dot); color: var(--muted); }
+.arrow { font: 30px var(--display); color: var(--shu); text-align: center; }
+.compact .tk { min-height: 0; padding: 8px 14px; }
+.compact .tk b { font-size: 17px; }
+.later { font-size: 15px; font-weight: 700; color: var(--muted); }
+.confirm { margin-top: auto; display: flex; align-items: center; gap: 16px; }
+.target { width: 92px; height: 92px; flex: none; border-radius: 50%; border: 3px dashed #E5452B99; display: grid; place-items: center; text-align: center; white-space: pre-line; font: 12px/1.25 var(--dot); color: var(--shu-text); letter-spacing: .06em; }
+.confirm b { display: block; font: 23px var(--display); color: var(--ai); }
+.confirm small { font-size: 15px; font-weight: 700; color: var(--muted); }
+/* applied */
+.banner { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--ai); padding-right: 140px; }
+/* Below the day tabs, over the banner and the first board row, like a stamp on a ticket. */
+.ok-stamp { position: absolute; right: 24px; top: 62px; width: 112px; height: 112px; animation: land .36s .15s cubic-bezier(.2, .9, .3, 1.2) both; }
+.ok-stamp svg { width: 100%; height: 100%; transform: rotate(-12deg); }
+@keyframes land { 0% { opacity: 0; transform: scale(1.7); } 65% { opacity: 1; transform: scale(.94); } 100% { opacity: 1; transform: scale(1); } }
 .empty { font-size: 20px; color: var(--muted); }
-/* Memories slideshow: a scrapbook page on warm paper. */
-#root.memories { background: #f3ead8; color: #3b2f22; padding: 22px 26px; gap: 10px; }
-.mem-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 800; color: #7a6248; letter-spacing: .02em; }
-.mem { flex: 1; display: grid; grid-template-columns: 430px 1fr; gap: 26px; align-items: center; min-height: 0; }
-.polaroid { background: #fffdf8; padding: 12px 12px 34px; border-radius: 6px; box-shadow: 0 6px 18px rgba(80, 60, 30, .22); transform: rotate(-1.6deg); height: 380px; display: flex; align-items: center; justify-content: center; position: relative;
-  animation: polaroidIn .9s cubic-bezier(.2, .9, .25, 1.15) both; }
-.photo-wrap { max-width: 100%; max-height: 100%; overflow: hidden; border-radius: 2px; display: flex; }
-.polaroid img.photo { max-width: 100%; max-height: 346px; object-fit: contain; display: block; animation: kenBurns 6.5s ease-out both; transform-origin: 60% 40%; }
-/* Each new memory: the polaroid flies in, the photo slowly zooms, words follow, the sticker pops. */
-@keyframes polaroidIn { from { opacity: 0; transform: translateX(120px) rotate(9deg) scale(.92); } to { opacity: 1; transform: rotate(-1.6deg); } }
+/* memories slideshow: a page of light kraft paper */
+#root.memories { background-color: #F3E3C8; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .25  0 0 0 0 .12  0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"); color: #2B1D10; padding: 20px 28px; gap: 10px; }
+.mem-head { display: flex; justify-content: space-between; align-items: baseline; font: 14px var(--dot); letter-spacing: .1em; color: #5B4632; }
+.mem-head b { font-weight: 400; color: var(--shu-text); }
+.mem { flex: 1; display: grid; grid-template-columns: 410px 1fr; gap: 34px; align-items: center; min-height: 0; }
+.polaroid { position: relative; background: #fff; padding: 10px 10px 12px; box-shadow: 0 10px 24px #3a2a1a40; transform: rotate(-2.2deg); height: 352px; display: flex; align-items: center; justify-content: center; animation: polaroidIn .9s cubic-bezier(.2, .9, .25, 1.15) both; }
+.photo-wrap { max-width: 100%; max-height: 100%; overflow: hidden; display: flex; }
+.polaroid img.photo { max-width: 100%; max-height: 330px; object-fit: contain; display: block; animation: kenBurns 6.5s ease-out both; transform-origin: 60% 40%; }
+.polaroid .tape { position: absolute; top: -12px; left: 50%; width: 100px; height: 24px; margin-left: -50px; background: #e5452b8c; transform: rotate(4deg); mix-blend-mode: multiply; }
+.mem-stickers { position: absolute; right: -30px; top: -26px; display: flex; }
+.mem-stickers img { width: 92px; height: 92px; object-fit: contain; filter: drop-shadow(0 3px 3px #0003); transform: rotate(10deg); animation: pop .6s 1.1s cubic-bezier(.3, 1.4, .5, 1) both; }
+.mem-stickers img + img { margin-left: -26px; transform: rotate(-8deg); animation-delay: 1.25s; }
+.eki { position: absolute; right: -34px; bottom: -30px; width: 120px; height: 120px; mix-blend-mode: multiply; animation: land .36s 1.5s cubic-bezier(.2, .9, .3, 1.2) both; }
+.eki svg { width: 100%; height: 100%; transform: rotate(-12deg); }
+.mem-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.mem-when { font: 15px var(--dot); letter-spacing: .08em; color: #5B4632; animation: fadeUp .5s .35s ease both; }
+.mem-title { font: 40px/1.1 var(--display); color: #2B1D10; overflow-wrap: anywhere; animation: fadeUp .5s .5s ease both; }
+.mem-caption { font: 600 27px/1.35 var(--pen); color: var(--ai); display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; animation: fadeUp .6s .7s ease both; }
+@keyframes polaroidIn { from { opacity: 0; transform: translateX(120px) rotate(9deg) scale(.92); } to { opacity: 1; transform: rotate(-2.2deg); } }
 @keyframes kenBurns { from { transform: scale(1); } to { transform: scale(1.09) translate(-1.5%, 1%); } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-@keyframes pop { 0% { opacity: 0; transform: scale(.2) rotate(-25deg); } 70% { opacity: 1; transform: scale(1.18) rotate(6deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes pop { 0% { opacity: 0; transform: scale(.2) rotate(-25deg); } 70% { opacity: 1; transform: scale(1.18) rotate(6deg); } 100% { transform: scale(1) rotate(10deg); } }
 @keyframes leave { to { opacity: 0; transform: translateX(-110px) rotate(-7deg) scale(.94); } }
 @keyframes fill { from { width: 0; } to { width: 100%; } }
-.mem-when { animation: fadeUp .5s .35s ease both; }
-.mem-title { animation: fadeUp .5s .5s ease both; }
-.mem-caption { animation: fadeUp .6s .7s ease both; }
-.mem-stickers img { animation: pop .6s 1.1s cubic-bezier(.3, 1.4, .5, 1) both; }
-.mem-stickers img + img { animation-delay: 1.25s; }
 .mem.leaving .polaroid { animation: leave .5s ease-in both; }
 .mem.leaving .mem-text { animation: fadeUp .35s ease reverse both; }
-.mem-progress { height: 4px; border-radius: 4px; background: #e2d4b8; overflow: hidden; }
-.mem-progress span { display: block; height: 100%; background: #2f4a3a; animation: fill linear both; }
-@media (prefers-reduced-motion: reduce) { .mem *, .mem-progress span { animation: none !important; } }
-.polaroid .tape { position: absolute; top: -10px; left: 50%; width: 90px; height: 22px; margin-left: -45px; background: rgba(214, 196, 150, .75); transform: rotate(2deg); }
-.mem-text { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.mem-when { font-size: 16px; font-weight: 800; color: #7a6248; }
-.mem-title { font-family: var(--hand); font-size: 46px; line-height: 1; font-weight: 700; color: #2f4a3a; }
-.mem-caption { font-family: var(--hand); font-size: 30px; line-height: 1.15; color: #4a3a2a; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
-.mem-stickers { display: flex; gap: 6px; margin-top: 4px; }
-.mem-stickers img { width: 76px; height: 76px; }
+.mem-progress { height: 4px; border-radius: 4px; background: #2b1d1026; overflow: hidden; }
+.mem-progress span { display: block; height: 100%; background: var(--shu); animation: fill linear both; }
 .mem-dots { display: flex; gap: 6px; align-items: center; justify-content: center; }
-.mem-dots span { width: 8px; height: 8px; border-radius: 50%; background: #cdbb9b; }
-.mem-dots span.on { width: 22px; border-radius: 6px; background: #2f4a3a; }
+.mem-dots span { width: 22px; height: 6px; border-radius: 3px; background: #2b1d1026; }
+.mem-dots span.on { background: var(--shu); }
+@media (prefers-reduced-motion: reduce) { #root *, #root { animation: none !important; } }
 </style>
 </head>
 <body>
+<!--__ART__-->
 <div id="root" aria-live="polite"><p class="empty">Getting your trip…</p></div>
 <script>
+/*__STAMPS__*/
 (() => {
   'use strict';
   const root = document.getElementById('root');
@@ -103,6 +132,7 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
   let nextId = 1;
   let data = null;
   let day = 1;
+  const stamps = window.FolioStamps;
 
   // ---- MCP Apps bridge (JSON-RPC 2.0 over postMessage, spec 2026-01-26) ----
   const send = (message) => window.parent.postMessage({ jsonrpc: '2.0', ...message }, '*');
@@ -178,34 +208,69 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
     return head;
   }
   const dayStops = (trip) => (trip?.days?.find((item) => item.day === day) || trip?.days?.[0])?.stops || [];
-  function stops(list, riskIds = new Set()) {
-    const row = el('div', 'row');
-    for (const stop of list) {
-      const card = el('div', `stop${riskIds.has(stop.stopId) ? ' risk' : ''}${stop.done ? ' done' : ''}`);
-      card.append(el('div', 'time', stop.time), el('div', 'title', stop.title), el('div', 'meta', `${kinds[stop.kind] || 'Stop'} · ${stop.minutes} min${riskIds.has(stop.stopId) ? ' · rain' : ''}${stop.done ? ' · visited' : ''}`));
-      row.append(card);
+  function flaps(time) {
+    const box = el('div', 'flaps');
+    String(time || '--:--').split('').forEach((ch, i) => {
+      const flap = el('span', ch === ':' ? 'flap colon' : 'flap', ch);
+      flap.style.animationDelay = `${i * 40}ms`;
+      box.append(flap);
+    });
+    return box;
+  }
+  function board(list, { risk = new Set(), max = 5, next = false } = {}) {
+    const wrap = el('div', 'board');
+    const head = el('div', 'bh');
+    head.append(el('span', '', 'TIME'), el('span', '', 'DESTINATION'), el('span', '', 'TYPE'));
+    wrap.append(head);
+    const nextId = next ? list.find((stop) => !stop.done)?.stopId : null;
+    for (const stop of list.slice(0, max)) {
+      const atRisk = risk.has(stop.stopId);
+      const row = el('div', `brow${atRisk ? ' risk' : ''}${stop.done ? ' done' : ''}`);
+      const meta = el('small', '', `${kinds[stop.kind] || 'Stop'} · ${stop.minutes}m`);
+      if (atRisk) meta.append(el('span', 'tag rain', '☂ RAIN'));
+      else if (stop.done) meta.append(el('span', 'tag done', '済 DONE'));
+      else if (stop.stopId === nextId) meta.append(el('span', 'tag next', 'NEXT'));
+      row.append(flaps(stop.time), el('b', '', stop.title), meta);
+      wrap.append(row);
     }
-    return row;
+    const hidden = list.length - max;
+    if (hidden > 0) wrap.append(el('div', 'more', `+ ${hidden} more ${hidden === 1 ? 'stop' : 'stops'}`));
+    if (!list.length) wrap.append(el('div', 'more', 'No stops yet.'));
+    return wrap;
   }
   function hints(items) {
     const row = el('div', 'hints');
-    row.append(el('span', '', 'Try saying'), ...items.map((text) => el('span', '', text)));
-    row.firstChild.style.border = '0';
+    row.append(el('span', '', 'Try saying'), ...items.map((text) => el('span', 'stub', text)));
     return row;
   }
-  function changeList(diff) {
-    const list = el('div', 'changes');
+  function ticket(kind, label, stop) {
+    const card = el('div', `tk ${kind}`);
+    card.append(el('small', '', label), el('b', '', `${stop.time} ${stop.title}`));
+    const kind2 = kinds[stop.kind];
+    if (kind2) card.append(el('span', '', kind2));
+    return card;
+  }
+  function pairs(diff) {
     const main = diff.filter((item) => item.op !== 'moved');
-    const moved = diff.length - main.length;
-    for (const item of main.slice(0, 3)) {
-      const row = el('div', 'change');
-      row.append(el('span', 'op', `Day ${item.day} · ${item.op}`));
-      if (item.before) row.append(el('del', '', `${item.before.time} ${item.before.title}`));
-      if (item.after) row.append(el('ins', '', `${item.after.time} ${item.after.title}`));
+    const shown = (main.length ? main : diff).slice(0, 2);
+    const list = el('div', `pairs${shown.length > 1 ? ' compact' : ''}`);
+    for (const item of shown) {
+      const row = el('div', 'pair');
+      row.append(
+        item.before ? ticket('old', `NOW · DAY ${item.day}`, item.before) : el('div', 'tk empty', 'NEW STOP'),
+        el('div', 'arrow', '→'),
+        item.after ? ticket('new', item.op === 'moved' ? 'NEW TIME' : 'NEW', item.after) : el('div', 'tk empty', 'REMOVED'),
+      );
       list.append(row);
     }
-
-    return list;
+    return { list, shown: shown.length, mainCount: main.length };
+  }
+  function confirmBlock(target, title, note) {
+    const box = el('div', 'confirm');
+    const words = el('div');
+    words.append(el('b', '', title), el('small', '', note));
+    box.append(el('div', 'target', target), words);
+    return box;
   }
   let slide = 0;
   let slideTimer = 0;
@@ -221,7 +286,9 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
     slide %= items.length;
     const item = items[slide];
     const head = el('div', 'mem-head');
-    head.append(el('span', '', `OUR TRIP MEMORIES · ${String(book.title || '').toUpperCase()}`), el('span', '', `${slide + 1} / ${items.length}`));
+    const count = el('span');
+    count.append(el('b', '', `${slide + 1} / ${items.length}`));
+    head.append(el('span', '', `OUR TRIP MEMORIES · ${String(book.title || '').toUpperCase()}`), count);
     const page = el('div', 'mem');
     const frame = el('div', 'polaroid');
     frame.append(el('span', 'tape'));
@@ -238,16 +305,19 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
       img.alt = item.stickers[0].label;
       frame.append(img);
     }
-    const words = el('div', 'mem-text');
+    if (item.photo && item.stickers?.length) {
+      const row = el('div', 'mem-stickers');
+      for (const sticker of item.stickers.slice(0, 2)) { const img = el('img'); img.src = sticker.data; img.alt = `${sticker.label} sticker`; row.append(img); }
+      frame.append(row);
+    }
     const when = [item.day ? `Day ${item.day}` : '', item.time || ''].filter(Boolean).join(' · ');
-    if (when) words.append(el('div', 'mem-when', when));
+    const eki = el('div', 'eki');
+    eki.innerHTML = stamps.stampSvg('eki', { name: stamps.stampName(item.title) || item.title, top: String(book.place || 'Travel Folio').toUpperCase(), sub: item.day ? `DAY ${item.day}` : '' });
+    frame.append(eki);
+    const words = el('div', 'mem-text');
+    if (when) words.append(el('div', 'mem-when', when.toUpperCase()));
     words.append(el('div', 'mem-title', item.title));
     if (item.caption) words.append(el('div', 'mem-caption', item.caption));
-    if (item.stickers?.length) {
-      const row = el('div', 'mem-stickers');
-      for (const sticker of item.stickers) { const img = el('img'); img.src = sticker.data; img.alt = `${sticker.label} sticker`; row.append(img); }
-      words.append(row);
-    }
     page.append(frame, words);
     const dots = el('div', 'mem-dots');
     items.forEach((_, index) => dots.append(el('span', index === slide ? 'on' : '')));
@@ -273,51 +343,53 @@ h1 { margin: 2px 0 0; font-family: var(--hand); font-weight: 700; font-size: 40p
       nodes.push(...renderMemories(value.memories));
     } else if (value.preview) {
       const trip = value.preview;
-      nodes.push(header(`Alexa suggests · ${trip.days.length}-day trip`, trip.title, trip), stops(dayStops(trip)));
-      const foot = el('div', 'footer');
-      foot.append(el('span', 'pill', 'Say “yes” to create it'), el('span', '', 'Nothing is saved until you confirm.'));
-      nodes.push(foot);
+      nodes.push(header(`Alexa suggests · ${trip.days.length}-day trip`, trip.title, trip), board(dayStops(trip), { max: 4 }),
+        confirmBlock('SAY\n“YES”\nTO BOOK', 'Say “yes” to create it.', 'Nothing is saved until you confirm.'));
     } else if (value.proposal) {
       const diff = value.proposal.diff || [];
-      const tally = (ops) => diff.filter((item) => ops.includes(item.op)).length;
-      const counts = el('div', 'counts');
-      for (const [n, label] of [[tally(['replaced']), 'replaced'], [tally(['added']), 'added'], [tally(['removed']), 'removed'], [tally(['moved']), 'later stops adjusted']]) {
-        if (!n) continue;
-        const chip = el('div', 'count');
-        chip.append(el('b', '', n), el('span', '', label));
-        counts.append(chip);
-      }
-      nodes.push(header('Alexa suggests', 'A change of plan'), counts, changeList(diff));
-      const foot = el('div', 'footer');
-      foot.append(el('span', 'pill', 'Say “yes” to apply'), el('span', '', 'Nothing changes until you confirm.'));
-      nodes.push(foot);
+      const tally = (op) => diff.filter((item) => item.op === op).length;
+      const shown = pairs(diff);
+      const retimed = tally('moved') - (shown.mainCount ? 0 : shown.shown);
+      const parts = [];
+      if (tally('replaced')) parts.push(`${tally('replaced')} swapped`);
+      if (tally('added')) parts.push(`${tally('added')} added`);
+      if (tally('removed')) parts.push(`${tally('removed')} removed`);
+      if (retimed > 0) parts.push(`${retimed} later ${retimed === 1 ? 'stop' : 'stops'} re-timed to fit`);
+      nodes.push(header(`Alexa suggests · Day ${pickDay(value)}`, 'A change of plan'), shown.list);
+      if (parts.length) nodes.push(el('div', 'later', parts.join(' · ')));
+      nodes.push(confirmBlock('SAY\n“YES”\nTO STAMP', 'Say “yes” to apply.', 'Nothing changes until you confirm. “Undo” is always there.'));
     } else if (value.status === 'applied' || value.status === 'undone') {
       nodes.push(header(value.status === 'applied' ? 'Updated' : 'Back to the previous plan', value.trip?.title || 'Your trip', value.trip));
-      const banner = el('div', 'banner');
-      banner.append(el('span', 'ok', '✓'), el('span', '', value.status === 'applied' ? 'Your plan is updated. Undo is always available.' : 'I restored your previous plan.'));
-      nodes.push(banner, stops(dayStops(value.trip)), hints(['“Undo”', '“Take it to my phone”']));
+      nodes.push(el('div', 'banner', value.status === 'applied' ? 'Your plan is updated. Undo is always available.' : 'I restored your previous plan.'));
+      nodes.push(board(dayStops(value.trip), { max: 4, next: true }), hints(['“Undo”', '“Take it to my phone”']));
+      if (value.status === 'applied') {
+        const stamp = el('div', 'ok-stamp');
+        stamp.innerHTML = stamps.stampSvg('ok', { sub: 'APPLIED' });
+        nodes.push(stamp);
+      }
     } else if (value.source && 'atRisk' in value) {
       const ids = new Set((value.atRisk || []).map((item) => item.stopId));
       nodes.push(header(`Day ${value.day} · ${value.date ? dateLabel(value.date) : ''}`, ids.size ? 'Rain on the way' : 'Looking dry'));
-      const banner = el('div', 'banner');
-      const text = el('div');
-      text.append(el('span', ids.size ? 'rain' : 'ok', ids.size ? `Rain likely ${value.rainyWindow ? `${value.rainyWindow.from}–${value.rainyWindow.to}` : ''}` : 'No significant rain for outdoor stops'));
+      const banner = el('div', 'wx');
+      const text = el('div', 't');
+      text.append(el('b', ids.size ? '' : 'dry', ids.size ? `Rain likely ${value.rainyWindow ? `${value.rainyWindow.from}–${value.rainyWindow.to}` : ''}` : 'No significant rain for outdoor stops'));
       text.append(el('small', '', ids.size ? `${ids.size} outdoor stop${ids.size === 1 ? '' : 's'} affected. Ask me for indoor alternatives.` : value.assessmentComplete === false ? 'Some hours have no forecast.' : 'Enjoy the day.'));
-      banner.append(text, el('span', 'badge', value.source === 'demo' ? 'Sample weather' : value.source === 'open-meteo' ? 'Open-Meteo' : 'Unavailable'));
-      nodes.push(banner);
+      banner.append(text);
       const hours = (value.hourly || []).filter((item) => item.hour >= 8 && item.hour <= 20);
       if (hours.length) {
         const bars = el('div', 'bars');
-        for (const item of hours) { const bar = el('span'); bar.style.height = `${Math.max(4, item.precipitationProbability ?? 0)}%`; bar.title = `${item.hour}:00 ${item.precipitationProbability ?? '?'}%`; bars.append(bar); }
-        const labels = el('div', 'hours');
-        labels.append(el('span', '', '8:00'), el('span', '', '14:00'), el('span', '', '20:00'));
-        nodes.push(bars, labels);
+        for (const item of hours) { const bar = el('i'); bar.style.height = `${Math.max(6, item.precipitationProbability ?? 0)}%`; bars.append(bar); }
+        banner.append(bars);
       }
-      if (value.stops?.length) nodes.push(stops(value.stops, ids));
+      banner.append(el('span', 'badge', value.source === 'demo' ? 'Sample weather' : value.source === 'open-meteo' ? 'Open-Meteo' : 'Unavailable'));
+      nodes.push(banner);
+      if (value.stops?.length) nodes.push(board(value.stops, { risk: ids, max: 3 }));
+      if (ids.size) nodes.push(hints(['“Find indoor alternatives”', '“Keep my plan”']));
     } else if (value.trip) {
       const trip = value.trip;
       const first = trip.days?.[0]?.date;
-      nodes.push(header(`${trip.city === 'seattle' ? 'Seattle' : 'Kyoto'} · ${first ? dateLabel(first) : ''} · ${trip.pace || ''}`, trip.title, trip), stops(dayStops(trip)), hints(['“What’s the weather?”', '“Add a coffee stop”', '“Take it to my phone”']));
+      nodes.push(header(`${trip.city === 'seattle' ? 'Seattle' : 'Kyoto'} · ${first ? dateLabel(first) : ''} · ${trip.pace || ''}`, trip.title, trip),
+        board(dayStops(trip), { next: true }), hints(['“What’s the weather?”', '“Add a coffee stop”', '“Take it to my phone”']));
     } else {
       nodes.push(el('p', 'empty', 'Ask Alexa to plan a trip.'));
     }

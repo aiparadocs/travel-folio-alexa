@@ -36,9 +36,13 @@ test('MCP Apps: trip tools link a versioned ui:// view that is listed and readab
 
 test('MCP Apps view is one self-contained bundle with no external requests', () => {
   assert.doesNotMatch(TRIP_CARD_HTML, /<(script|link|img)[^>]+(src|href)=/i, 'no external scripts, styles or images');
-  assert.doesNotMatch(TRIP_CARD_HTML, /url\((?!data:)/, 'fonts are inlined as data URLs');
+  // data: URLs, same-document #fragments, and %23 fragments inside the inlined SVG paper texture.
+  assert.doesNotMatch(TRIP_CARD_HTML, /url\((?!["']?(?:data:|#|%23))/, 'no external url() references');
   assert.doesNotMatch(TRIP_CARD_HTML, /\bfetch\(|XMLHttpRequest|localStorage|document\.cookie/);
-  assert.match(TRIP_CARD_HTML, /font-family:'Caveat'/);
+  for (const family of ['Folio Display', 'Folio Dot', 'Folio UD', 'Folio Pen']) assert.match(TRIP_CARD_HTML, new RegExp(`font-family:'${family}'`));
+  assert.ok(TRIP_CARD_HTML.includes('<filter id="tf-ink"'), 'ink filter is inlined');
+  assert.match(TRIP_CARD_HTML, /root\.FolioStamps = api/, 'stamps.js is inlined');
+  assert.doesNotMatch(TRIP_CARD_HTML, /__FONTS__|__ART__|__STAMPS__/, 'every placeholder was filled');
   const script = TRIP_CARD_HTML.match(/<script>([\s\S]*)<\/script>/)[1];
   assert.doesNotThrow(() => new vm.Script(script));
 });
@@ -75,12 +79,14 @@ test('MCP Apps view speaks the ui/initialize handshake and renders tool results'
   assert.equal(documentElement.style.zoom, '1.667', 'Alexa+ root scale for an Echo Show 8 width');
   assert.equal(documentElement.dataset.theme, 'dark');
   const text = (node) => [node.textContent, ...node.children.map(text)].join(' ');
+  const find = (node, cls) => (String(node.className).split(' ').includes(cls) ? node : node.children.map((child) => find(child, cls)).find(Boolean));
   deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { proposal: { summary: 'Swap A for B.', diff: [{ op: 'replaced', day: 1, before: { time: '10:00', title: 'A' }, after: { time: '10:00', title: 'B' } }] } } } });
   assert.match(text(root), /A change of plan/);
   assert.match(text(root), /Nothing changes until you confirm/);
   deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { day: 1, date: '2026-10-07', source: 'demo', atRisk: [{ stopId: 's1', title: 'A' }], rainyWindow: { from: '10:00', to: '17:00' }, stops: [{ stopId: 's1', time: '10:00', title: 'A', kind: 'walk', minutes: 60 }], hourly: [] } } });
   assert.match(text(root), /Rain likely 10:00–17:00/);
   assert.match(text(root), /Sample weather/);
+  assert.match(text(root), /☂ RAIN/);
   deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { preview: { title: '2 days in Kyoto', city: 'kyoto', days: [{ day: 1, stops: [{ stopId: 'x', time: '10:00', title: 'Fushimi Inari Taisha', kind: 'walk', minutes: 120 }] }, { day: 2, stops: [] }] } } } });
   assert.match(text(root), /Alexa suggests · 2-day trip/);
   assert.match(text(root), /Nothing is saved until you confirm/);
@@ -89,6 +95,15 @@ test('MCP Apps view speaks the ui/initialize handshake and renders tool results'
   assert.match(text(root), /Kinkaku-ji/);
   assert.match(text(root), /Gold on a blue afternoon\./);
   assert.match(text(root), /1 \/ 2/);
+  deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { trip: { title: '2 days in Kyoto', city: 'kyoto', pace: 'relaxed', days: [{ day: 1, date: '2026-10-07', stops: [{ stopId: 'a', time: '10:00', title: 'Fushimi Inari Taisha', kind: 'walk', minutes: 120 }, { stopId: 'b', time: '12:20', title: 'Kyoto Ramen Koji', kind: 'food', minutes: 50 }] }] } } } });
+  assert.ok(find(root, 'board'), 'the itinerary is a departure board');
+  assert.match(text(root), /Fushimi Inari Taisha/);
+  assert.match(text(root), /NEXT/);
+  assert.match(text(root), /Try saying/);
+  deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { status: 'applied', trip: { title: '2 days in Kyoto', days: [{ day: 1, stops: [] }] } } } });
+  assert.match(find(root, 'ok-stamp').innerHTML, />OK</, 'an applied change gets the OK stamp');
+  deliver({ jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { memories: { title: '2 days in Kyoto', place: 'Kyoto', items: [{ day: 2, time: '10:00', title: 'Kinkaku-ji', caption: 'Gold on a blue afternoon.', photo: 'data:image/jpeg;base64,AAAA', stickers: [] }] } } } });
+  assert.match(find(root, 'eki').innerHTML, />金閣寺</, 'memories get a station stamp with the kanji name');
   const other = { postMessage() {} };
   listeners.forEach((fn) => fn({ source: other, data: { jsonrpc: '2.0', method: 'ui/notifications/tool-result', params: { structuredContent: { trip: { title: 'Injected', days: [] } } } } }));
   assert.doesNotMatch(text(root), /Injected/, 'messages not from the host are ignored');
