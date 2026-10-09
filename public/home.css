@@ -99,7 +99,8 @@ img { max-width: 100%; }
 #create-button { justify-content: space-between; margin-top: 12px; }
 .conversation-heading { margin-top: 24px; }
 .conversation-heading h3 { font: 14px var(--font-dot); letter-spacing: .08em; color: var(--muted); text-transform: uppercase; }
-.conversation { max-height: 260px; overflow-y: auto; scrollbar-width: thin; padding: 12px 2px 2px; overscroll-behavior: contain; overflow-wrap: anywhere; }
+.conversation { max-height: 270px; overflow-y: auto; scrollbar-width: thin; padding: 22px 2px 2px; overscroll-behavior: contain; overflow-wrap: anywhere;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent 6px, #000 26px); mask-image: linear-gradient(to bottom, transparent 0, transparent 6px, #000 26px); }
 .message { font-size: 16px; line-height: 1.6; margin: 14px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .message:first-child { margin-top: 0; }
 .message-label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 5px; white-space: normal; font-weight: 700; }

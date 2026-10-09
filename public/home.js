@@ -74,6 +74,51 @@
   }
   function clearError() { $('action-error').hidden = true; $('action-error').textContent = ''; }
 
+  const CITY_TICKET = { kyoto: ['KYOTO', '京都'], seattle: ['SEATTLE', ''] };
+  function renderTicket(trip) {
+    const ticket = $('trip-ticket');
+    ticket.classList.toggle('blank', !trip);
+    const main = el('div', 'ticket-main');
+    const stub = el('div', 'ticket-stub');
+    main.append(el('span', 'ticket-label', 'TRAVEL FOLIO · 乗車券'));
+    if (!trip) {
+      main.append(el('span', 'ticket-city', 'WHERE TO?'), el('span', 'ticket-line', 'KYOTO · SEATTLE'), el('span', 'ticket-line', 'Your ticket prints here.'));
+      const no = el('span'); no.append('No.', el('br'), '----');
+      const valid = el('span'); valid.append('VALID', el('br'), '-- DAYS');
+      stub.append(no, el('i', 'punch'), valid);
+    } else {
+      const days = Array.isArray(trip.days) ? trip.days : [];
+      const [latin, local] = CITY_TICKET[trip.city] || [String(trip.city || 'TRIP').toUpperCase(), ''];
+      const city = el('span', 'ticket-city', latin);
+      if (local) city.append(el('small', '', local));
+      const first = dateLabel(trip.startDate).toUpperCase();
+      const lastDate = days[days.length - 1]?.date;
+      const last = lastDate && lastDate !== trip.startDate ? dateLabel(lastDate).toUpperCase() : '';
+      const likes = (Array.isArray(trip.interests) && trip.interests.length ? trip.interests.slice(0, 3) : [trip.pace || '']).join(' · ').toUpperCase();
+      main.append(city, el('span', 'ticket-line', `${days.length} ${days.length === 1 ? 'DAY' : 'DAYS'}${first ? ` · ${first}${last ? ` → ${last}` : ''}` : ''}`), el('span', 'ticket-line', likes));
+      const no = el('span'); no.append('No.', el('br'), String(trip.tripId || '').replace(/[^a-z0-9]/gi, '').slice(-4).toUpperCase().padStart(4, '0'));
+      const valid = el('span'); valid.append('VALID', el('br'), `${days.length} ${days.length === 1 ? 'DAY' : 'DAYS'}`);
+      stub.append(no, el('i', 'punch'), valid);
+    }
+    ticket.replaceChildren(main, stub);
+  }
+
+  function riskyStopIds() {
+    const weather = state?.weather;
+    if (!weather || (weather.day != null && Number(weather.day) !== selectedDay)) return new Set();
+    return new Set((weather.atRisk || []).map((stop) => stop.stopId));
+  }
+
+  function stampBurst() {
+    const folio = document.querySelector('.folio');
+    folio.querySelector('.stamp-burst')?.remove();
+    const burst = el('span', 'stamp-burst stamp-land');
+    burst.setAttribute('aria-hidden', 'true');
+    burst.innerHTML = window.FolioStamps.stampSvg('ok', { sub: 'APPROVED' });
+    folio.append(burst);
+    window.setTimeout(() => burst.remove(), 2600);
+  }
+
   function renderMessages(messages) {
     const items = (Array.isArray(messages) ? messages : []).filter((message, index) => !(index === 0 && message.role === 'assistant' && message.text?.startsWith('Let’s plan something worth remembering.')));
     $('conversation').hidden = !items.length;
@@ -199,10 +244,10 @@
     $('adjust-day').textContent = `Day ${selectedDay}`;
     $('stop-list').replaceChildren();
     const day = days.find((entry) => Number(entry.day) === selectedDay);
+    const risky = riskyStopIds();
     for (const stop of day?.stops || []) {
-      const row = el('li', 'stop');
-      const marker = el('span', 'stop-marker');
-      marker.append(icon(stop.kind === 'coffee' || stop.kind === 'food' ? 'coffee' : stop.exposure === 'indoor' ? 'house' : 'pin'));
+      const atRisk = risky.has(stop.stopId);
+      const row = el('li', `stop${atRisk ? ' risk' : ''}${stop.done ? ' done' : ''}`);
       const body = el('div', 'stop-body');
       body.append(el('h3', 'stop-title', stop.title));
       const meta = el('p', 'stop-meta');
@@ -211,8 +256,12 @@
       if (stop.exposure === 'indoor' && stop.kind !== 'indoor') meta.append(el('span', '', 'Indoors'));
       if (stop.locked) meta.append(el('span', '', 'Time fixed'));
       if (stop.done) meta.append(el('span', '', 'Visited'));
+      if (atRisk) meta.append(el('span', '', 'Rain likely'));
       body.append(meta);
-      row.append(el('span', 'stop-time', stop.time), marker, body);
+      const stamp = el('span', 'stop-stamp');
+      if (stop.done) stamp.innerHTML = window.FolioStamps.stampSvg('done');
+      else if (atRisk) stamp.innerHTML = window.FolioStamps.stampSvg('rain');
+      row.append(el('span', 'stop-time', stop.time), body, stamp);
       $('stop-list').append(row);
     }
     if (!day?.stops?.length) $('stop-list').append(el('li', 'stop', 'A little space in your day. Add a coffee stop to begin.'));
@@ -234,6 +283,7 @@
     $('suggestion-label').textContent = state.suggestion?.label || '';
     renderProposal(state.proposal);
     renderTrip(state.trip);
+    renderTicket(state.trip);
     renderWeather(state.weather);
     $('tool-trace').textContent = state.trace?.length ? state.trace.map((entry) => typeof entry === 'string' ? entry : JSON.stringify(entry, null, 2)).join('\n\n') : 'No travel tools called yet.';
     if (!state.handoff && $('handoff-dialog').open) $('handoff-dialog').close();
@@ -255,10 +305,12 @@
     clearError();
     const oldProposal = state?.proposal?.proposalId;
     const oldHandoff = state?.handoff?.url;
+    const oldApp = state?.app?.id;
     setBusy(true, 'Planning…');
     try {
       const next = await request(path, payload);
       render(next);
+      if (next.app && next.app.id !== oldApp && ['create_trip', 'apply_change'].includes(next.app.tool)) stampBurst();
       $('connection-error').hidden = true;
       if (!fromVoice) speak(next.reply);
       if (next.proposal?.proposalId && next.proposal.proposalId !== oldProposal) {

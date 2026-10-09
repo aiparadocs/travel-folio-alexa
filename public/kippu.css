@@ -2,8 +2,11 @@
    and the simulated Echo Show. The MCP card and the phone journal inline their own copies. */
 @font-face { font-family: 'Folio Display'; font-weight: 400; font-display: swap; src: url('/fonts/dela-gothic-one.woff2') format('woff2'); }
 @font-face { font-family: 'Folio Dot'; font-weight: 400; font-display: swap; src: url('/fonts/dotgothic16.woff2') format('woff2'); }
-@font-face { font-family: 'Folio UD'; font-weight: 400; font-display: swap; src: url('/fonts/biz-udpgothic-400.woff2') format('woff2'); }
-@font-face { font-family: 'Folio UD'; font-weight: 700; font-display: swap; src: url('/fonts/biz-udpgothic-700.woff2') format('woff2'); }
+/* BIZ UDPGothic draws en/em dashes as hairlines; leave U+2013/2014 to the next font in the stack. */
+@font-face { font-family: 'Folio UD'; font-weight: 400; font-display: swap; src: url('/fonts/biz-udpgothic-400.woff2') format('woff2');
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2190-2193, U+2602, U+2713; }
+@font-face { font-family: 'Folio UD'; font-weight: 700; font-display: swap; src: url('/fonts/biz-udpgothic-700.woff2') format('woff2');
+  unicode-range: U+0020-007E, U+00A0-00FF, U+2018-2019, U+201C-201D, U+2022, U+2026, U+2190-2193, U+2602, U+2713; }
 @font-face { font-family: 'Folio Pen'; font-weight: 600; font-display: swap; src: url('/fonts/klee-one-600.woff2') format('woff2'); }
 
 :root {
@@ -17,7 +20,7 @@
   --focus: #C23A22;
   --font-display: 'Folio Display', 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic', Meiryo, sans-serif;
   --font-dot: 'Folio Dot', 'BIZ UDGothic', ui-monospace, monospace;
-  --font-ui: 'Folio UD', 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic', Meiryo, system-ui, sans-serif;
+  --font-ui: 'Folio UD', 'Segoe UI', 'BIZ UDPGothic', 'Hiragino Sans', 'Yu Gothic', Meiryo, system-ui, sans-serif;
   --font-pen: 'Folio Pen', 'Klee One', 'Yu Gothic', cursive;
   color-scheme: light; font-synthesis: none;
 }
