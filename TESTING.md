@@ -1,14 +1,16 @@
 # Verification record
 
-Verified locally on 2026-10-04, Windows, Node.js 22.18.0, Chromium through Playwright.
+Verified locally on 2026-10-04 and again on 2026-10-09 (kippu & stamp redesign), Windows,
+Node.js 22.18.0, Chromium through Playwright.
 These results cover this integrated app, not the older standalone bundle's reports.
 
 ## Automated tests
 
 From this directory run `npm ci`, then `npm test`.
 
-**81 tests passed, 0 failed** (2026-10-06). This includes the original 38 checks,
-10 voice API, 18 voice-controller, 5 returning-visit, 5 MCP Apps and 5 memory-sharing checks. No cloud credentials
+**95 tests passed, 0 failed** (2026-10-09). This includes the original 38 checks,
+10 voice API, 18 voice-controller, 5 returning-visit, 5 MCP Apps, 5 memory-sharing,
+10 stamp (`test/stamps.test.js`) and 4 phone-design (`test/phone-design.test.js`) checks. No cloud credentials
 or model charges are required.
 
 - 5 MCP Apps tests (`test/apps.test.js`): `preview_trip` shows a pending trip without saving it, tool `_meta.ui.resourceUri` links, listed and
@@ -78,7 +80,8 @@ They are not part of `npm test` and are not directly executable Node scripts.
 | `qa/browser-journey.js` | 26 | Create → confirm → sample rain → preview → apply → Undo; decline; coffee stop; day selection; reload; real handoff; photo/caption/sticker; HTML export and reopen |
 | `qa/browser-phone.js` | 20 | Real IndexedDB persistence, responsive layout, failed-save recovery/export, newest rescue selection, notes-only recovery, unreadable-data protection, stale-tab conflict protection |
 | `qa/browser-states.js` | 8 | Initial connection failure/retry, incomplete-weather labels, cloud failure after preparing a proposal, no automatic mutation retry |
-| `qa/browser-voice.js` | 25 | Japanese/English voice events → real HTTP/MCP → confirmation → weather → cancellation → LAN QR; no microphone before Start, no recognition/read-aloud overlap, interrupted-reading protection |
+| `qa/browser-voice.js` | 23 | Japanese/English voice events → real HTTP/MCP → confirmation → weather → cancellation → LAN QR; no microphone before Start, no recognition/read-aloud overlap, interrupted-reading protection |
+| `qa/browser-memory-layout.js` | 48 | Square/portrait/panoramic photos keep their shape on screen, in the editor, in print and in standalone export; distinct memories paper; no overflow at 1280/390/320px |
 | `qa/browser-print.js` | 26 | Itinerary/memories/combined preview, day selection, decoded photos, native print/cancel, unchanged journal/storage, portable export, complete long text and multiline continuation, measured page bounds |
 
 The home and phone pages fit 1440, 768, 390 and 320 CSS-pixel widths. The conversation
@@ -158,6 +161,25 @@ not substitute for opening a saved `file://` document on every operating system.
 Storage failures and cloud failures are deliberately injected. IndexedDB
 cross-tab conflict checking is transactional; localStorage fallback protection
 is best-effort because localStorage has no equivalent transaction across tabs.
+
+## Kippu & stamp redesign (2026-10-09)
+
+The home page, Echo Show card and host, phone journal and print sheets were restyled
+(indigo/vermilion, tickets, departure board, ink stamps, light kraft memories). Element
+IDs, buttons and server/MCP behaviour are unchanged.
+
+- `npm test`: 95 passed. Browser QA (run with a small Node runner around these files):
+  journey 26, states 8, voice 23, phone 20, print 26, memory-layout 48 — all passed.
+- No horizontal overflow on the home page at 320–1440px or in the journal at 1280/390/320px.
+- Print: the sample journal is one A4 sheet in all three modes; preview and real PDF page
+  counts match.
+- Measured contrast of text pairs is at least 5.2:1 (body text 12.9–16:1).
+- Fonts are subsets totalling 130.8 KB; the journal file shrank from 1,032 KB to 798 KB
+  (lighter 72 KB paper texture).
+- `qa/browser-memory-layout.js` now measures layout boxes instead of
+  `getBoundingClientRect`, because memory photos are tilted slightly on purpose; a
+  deliberately stretched or letterboxed photo still fails the check.
+- Screenshots: `qa/kippu-*.png` (phone screenshots use synthetic photos).
 
 ## External integration and remaining checks
 

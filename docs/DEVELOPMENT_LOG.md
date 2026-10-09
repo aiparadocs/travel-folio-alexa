@@ -47,3 +47,20 @@ submitted to Amazon.
   now prefers the private physical adapter for phone QR links.
 - Voice quality and physical QR scanning still need device-level verification;
   automated browser checks use speech-event fixtures with real HTTP/MCP operations.
+
+## 2026-10-09 — Kippu & stamp redesign
+
+- The earlier look (sage green, cream, rounded white cards, a sparkle mark, one free
+  handwriting font everywhere) read as generic. The new design ties the visuals to the
+  product story: plan = ticket, trip = stamp rally, memories = stamp book, approval = an
+  "OK" stamp. Echo Show itineraries became a departure board.
+- One source for the art: `public/stamps.js` (ink-stamp SVGs, ticket-logo defs and an
+  English → kanji table for station stamps) runs in the browser, in Node tests, and is
+  inlined into the MCP Apps bundle and the standalone journal, so nothing drifts.
+- Fonts are `text=` subsets from Google Fonts (130.8 KB in total). BIZ UDPGothic draws
+  en dashes as hairlines, so U+2013/2014 are excluded from that face and fall back.
+- The journal's CSS had grown in layers; the redesign adds one final skin layer and
+  recolours the print section in place instead of rewriting 68 KB of CSS, which kept all
+  storage, recovery and print-pagination behaviour intact.
+- A decorative photo tilt made a QA check read the rotated bounding box as distortion;
+  the check now measures layout boxes and still fails for real stretching.

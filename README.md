@@ -8,6 +8,16 @@ This is a **simulated Alexa+ experience** with a working self-hosted MCP backend
 The default uses a small guided conversation engine and clearly labelled sample
 weather. No AWS account, model key, build step, or external font is needed to try it.
 
+## Design
+
+The look is called **kippu & stamp** (切符とスタンプ): a trip starts as a ticket, the phone
+journal is a stamp rally, and the memories become a stamp book. Indigo and vermilion,
+station-style ink stamps, a departure board on the Echo Show, and approving a change
+literally stamps it "OK". Photos are pasted on light kraft paper with colourful stickers.
+Type: Dela Gothic One (headings), DotGothic16 (times, ticket print), BIZ UDPGothic (body
+text, a universal-design face chosen for older readers) and Klee One (handwritten captions).
+All fonts are small local subsets under the SIL Open Font License (see `public/fonts/`).
+
 ## Run
 
 Node.js 22 or newer:
@@ -133,8 +143,8 @@ The double-click demo launchers and `npm run share` intentionally use guided/dem
 - **MCP Apps for screens.** Eight trip tools declare a `ui://` view
   (`text/html;profile=mcp-app`, spec 2026-01-26), the extension Alexa+ uses to render
   interactive cards on Echo Show. The view is one self-contained bundle (fonts inlined,
-  empty CSP allowlist) that follows the Alexa+ visual foundations: a 768x480 canvas,
-  one root zoom per device, the published type, spacing and card colours.
+  empty CSP allowlist) that follows the Alexa+ layout foundations: a 768x480 canvas,
+  one root zoom per device and large type. Its colours and type are Travel Folio's own design.
   Open **Echo Show view** (top right) to see it: a small MCP Apps host renders the latest
   card through a cross-origin sandbox proxy, the way a web host must, next to the spoken reply.
 - New trips and proposed changes wait for the human's exact confirmation. The AI

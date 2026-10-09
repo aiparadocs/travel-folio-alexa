@@ -43,8 +43,12 @@ together.
 
 - **A scrapbook, not just an itinerary.** On the phone, every stop can hold a photo, a
   few words and up to three of 32 travel stickers. Unplanned detours become pages
-  too ("An unplanned detour"). Each day turns into a kraft-paper scrapbook page, printable
+  too ("An unplanned detour"). Each day turns into a light-kraft scrapbook page with
+  station-style stamps, printable
   as an A4 booklet or saved as one offline HTML file.
+- **A design you can hold.** Plan = a ticket, trip = a stamp rally, memories = a stamp book.
+  Saying yes to a change stamps it "OK" on the Echo Show; visited stops get a 済 (done)
+  stamp; every memory gets a station stamp with the place's Japanese name.
 - **Relive it together on Echo Show.** Back home, choose "Show memories on Echo Show" on
   the phone. Alexa greets you ("3 memories from your phone just arrived. Shall I show
   them?") and plays them as a polaroid-style slideshow on the kitchen screen. Nothing
@@ -87,7 +91,7 @@ together.
   a reproducible demo. Unknown data is reported as unknown, never as "dry".
 - **State:** each home plan is saved per browser and restored through MCP on return; the
   phone journal persists in IndexedDB with rescue copies.
-- **Quality:** 81 automated tests (real HTTP/MCP journeys, the MCP Apps handshake run
+- **Quality:** 95 automated tests (real HTTP/MCP journeys, the MCP Apps handshake run
   against the real view script, voice-controller timing, restart/restore), plus browser
   QA for the journey, phone storage, printing and the Echo Show cards.
 
@@ -107,7 +111,8 @@ together.
 - A full circle: a voice conversation becomes an Echo Show card, a phone scrapbook, a
   printed booklet, and finally a slideshow back on the kitchen screen, without an account.
 - An assistant that speaks first when it matters, but cannot change anything on its own.
-- The Echo Show cards follow Amazon's published design tokens.
+- The Echo Show cards follow the Alexa+ layout foundations (768x480 canvas, one root zoom)
+  in Travel Folio's own kippu & stamp look.
 
 ### What we learned
 
