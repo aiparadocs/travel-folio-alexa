@@ -106,6 +106,10 @@ together.
   MCP Apps lifecycle ourselves and tested the real view script against it.
 - **Honest weather.** A missing forecast hour is unknown, so automatic rain swaps are
   refused rather than guessed.
+- **Reusing MCP tool schemas with Amazon Bedrock.** In our first live run, Amazon Nova
+  rejected the `$schema` key the MCP SDK adds to every tool schema, and the model turned
+  "this Saturday" into a 2024 date. We now send only `type`, `properties` and `required`,
+  and give the model each city's date; both fixes have regression tests.
 
 ### Accomplishments that we're proud of
 
@@ -131,7 +135,7 @@ not calling tools, it is deciding which calls need a human, and making that visi
 ## Built with
 
 Node.js, Express, Model Context Protocol (TypeScript SDK), MCP Apps, Amazon Bedrock
-(Converse API, optional), AWS SDK for JavaScript v3, Open-Meteo, Web Speech API,
+(Converse API, optional), Amazon Nova 2 Lite, AWS SDK for JavaScript v3, Open-Meteo, Web Speech API,
 IndexedDB, Zod, QR code generator.
 
 ## Links
