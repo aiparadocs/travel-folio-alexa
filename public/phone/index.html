@@ -54,11 +54,11 @@ from (http://code.google.com/p/pyqrnative):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f3f2ec">
+<meta name="theme-color" content="#1C2F5C">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Plan a little trip at home. Keep its memories on your phone. A small, local-first travel journal.">
 <title>Travel Folio · Plan a little. Keep a lot.</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233c5a47'/%3E%3Cpath d='M7 7h7l2 2 2-2h7v18h-7l-2 2-2-2H7zM16 9v18' fill='none' stroke='%23fffefa' stroke-width='1.8'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23E5452B' fill-rule='evenodd' d='M6 9h36a4 4 0 0 1 4 4v6.4a4.6 4.6 0 0 0 0 9.2V35a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4v-6.4a4.6 4.6 0 0 0 0-9.2V13a4 4 0 0 1 4-4zM35.5 13a2.3 2.3 0 1 0 0 4.6a2.3 2.3 0 1 0 0-4.6z'/%3E%3C/svg%3E">
 <style id="folio-fonts">
 /*
 Copyright 2020 The Dela Gothic Project Authors (https://github.com/syakuzen/DelaGothic)
@@ -994,7 +994,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.serif{f
 <p class="loading" id="loading">Opening your journal…</p>
 <div id="application" hidden>
 <header class="topbar"><div class="top-inner">
- <div class="brand"><span class="brand-icon" data-icon="book"></span><span>Travel Folio</span></div>
+ <div class="brand"><span class="brand-icon"><svg class="brand-mark" aria-hidden="true"><use href="#tf-logo"/></svg></span><span>Travel Folio</span></div>
  <nav class="top-tabs" aria-label="Journal view"><button type="button" data-view="plan" aria-current="page"><span data-icon="calendar"></span>Itinerary</button><button type="button" data-view="memory" aria-current="false"><span data-icon="camera"></span>Memories</button></nav>
  <div class="top-actions"><span class="save-state" id="save-state" role="status">Getting ready</span><button type="button" class="button soft" data-action="transfer"><span data-icon="download"></span>Save &amp; take</button><button type="button" class="icon-button" data-action="menu" aria-label="Journal menu"><span data-icon="more"></span></button></div>
 </div></header>
@@ -1636,11 +1636,12 @@ return {NAME,INVOCATION,initial,starter,turn};
   function flags(s){return (s.locked?'<span>'+icon('lock')+'Time locked</span>':'')+(J.hasMemory(s)?'<span>'+icon('camera')+'Memory added</span>':'');}
   function renderSchedule(day=ui.day){
     const items=J.ordered(book,day);
-    if(!items.length)return '<div class="empty-memory"><h2 class="serif">A little room for possibility.</h2><p>Start with one place you would like to go.</p><button class="button" data-action="add">'+icon('plus')+'Add a stop</button></div>';
-    return '<div class="schedule-sheet">'+items.map(s=>'<article class="stop '+(s.done?'done':'')+'" id="stop-'+s.id+'"><time class="stop-time">'+s.time+'</time><div class="track"><button type="button" class="visit-toggle" data-toggle-id="'+s.id+'" aria-label="'+esc(s.title)+'：'+(s.done?'Mark as not visited':'Mark as visited')+'" aria-pressed="'+s.done+'"><span>'+(s.done?icon('check'):'')+'</span></button></div><div class="stop-body"><button type="button" class="stop-title-button" data-edit-id="'+s.id+'">'+esc(s.title)+'</button>'+(s.planNote?'<p class="stop-note">'+esc(s.planNote)+'</p>':'')+(flags(s)?'<div class="stop-flags">'+flags(s)+'</div>':'')+'</div><button type="button" class="icon-button stop-edit" data-edit-id="'+s.id+'" aria-label="'+esc(s.title)+' — edit">'+icon('edit')+'</button></article>').join('')+'<div class="schedule-foot"><button class="text-button" type="button" data-action="add">'+icon('plus')+'Add a little detour</button></div></div>';
+    if(!items.length)return '<div class="empty-memory"><h2 class="serif">No departures yet.</h2><p>Start with one place you would like to go.</p><button class="button" data-action="add">'+icon('plus')+'Add a stop</button></div>';
+    return '<div class="schedule-sheet">'+items.map(s=>'<article class="stop '+(s.done?'done':'')+'" id="stop-'+s.id+'"><time class="stop-time">'+s.time+'</time><div class="track"><button type="button" class="visit-toggle" data-toggle-id="'+s.id+'" aria-label="'+esc(s.title)+'：'+(s.done?'Mark as not visited':'Mark as visited')+'" aria-pressed="'+s.done+'"><span>'+(s.done?icon('check'):'')+'</span></button></div><div class="stop-body"><button type="button" class="stop-title-button" data-edit-id="'+s.id+'">'+esc(s.title)+'</button>'+(s.planNote?'<p class="stop-note">'+esc(s.planNote)+'</p>':'')+(flags(s)?'<div class="stop-flags">'+flags(s)+'</div>':'')+'</div><button type="button" class="icon-button stop-edit" data-edit-id="'+s.id+'" aria-label="'+esc(s.title)+' — edit">'+icon('edit')+'</button>'+(s.done?'<span class="visit-stamp'+(ui.stamped===s.id?' stamp-land':'')+'" aria-hidden="true">'+window.FolioStamps.stampSvg('done',{sub:'DAY '+s.day})+'</span>':'')+'</article>').join('')+'<div class="schedule-foot"><button class="text-button" type="button" data-action="add">'+icon('plus')+'Add a little detour</button></div></div>';
   }
+  function stationStamp(s,cls){return '<span class="'+cls+'" aria-hidden="true">'+window.FolioStamps.stampSvg('eki',{name:window.FolioStamps.stampName(s.title)||s.title,top:String(book.place||'Travel Folio').toUpperCase(),sub:'DAY '+s.day})+'</span>';}
   function memoryCard(s){
-    return '<button type="button" class="memory-card" data-memory-id="'+s.id+'" aria-label="'+esc(s.title)+' — edit memory"><div class="memory-media '+(!s.photo?'no-photo':'')+'">'+(s.photo?'<img'+photoAttributes(s.photo)+' src="'+s.photo+'" alt="'+esc(s.title)+' — travel photo" loading="lazy" decoding="async">':icon('edit')+'<small>A few words to keep</small>')+'<div class="stickers-on-photo">'+s.stickers.map(x=>sticker(x)).join('')+'</div></div><div class="memory-card-head"><time>'+s.time+'</time><span>·</span><span>'+(s.done?'Visited':'Travel note')+'</span></div><h3>'+esc(s.title)+'</h3>'+(s.caption?'<p class="memory-caption">'+esc(s.caption)+'</p>':'<p class="memory-placeholder">Add a few words</p>')+'</button>';
+    return '<button type="button" class="memory-card" data-memory-id="'+s.id+'" aria-label="'+esc(s.title)+' — edit memory"><div class="memory-media '+(!s.photo?'no-photo':'')+'">'+(s.photo?'<img'+photoAttributes(s.photo)+' src="'+s.photo+'" alt="'+esc(s.title)+' — travel photo" loading="lazy" decoding="async">':icon('edit')+'<small>A few words to keep</small>')+'<div class="stickers-on-photo">'+s.stickers.map(x=>sticker(x)).join('')+'</div>'+stationStamp(s,'memory-stamp')+'</div><div class="memory-card-head"><time>'+s.time+'</time><span>·</span><span>'+(s.done?'Visited':'Travel note')+'</span></div><h3>'+esc(s.title)+'</h3>'+(s.caption?'<p class="memory-caption">'+esc(s.caption)+'</p>':'<p class="memory-placeholder">Add a few words</p>')+'</button>';
   }
   function renderMemories(day=ui.day){
     const items=J.ordered(book,day),memories=items.filter(J.hasMemory),waiting=items.filter(s=>!J.hasMemory(s));
@@ -1816,7 +1817,7 @@ return {NAME,INVOCATION,initial,starter,turn};
   }
   function paperMemory(s,continued=false){
     const art=s.stickers.map(k=>sticker(k)).join('');
-    return {kind:'memory',stop:s,continued,html:'<article class="folio-print-item folio-memory'+(s.photo?' has-photo':'')+'" data-stop-id="'+esc(s.id)+'">'+((s.photo||art)?'<div class="folio-memory-media">'+(s.photo?'<img class="folio-memory-photo"'+photoAttributes(s.photo)+' src="'+s.photo+'" alt="'+esc(s.title)+'">':'')+(art?'<div class="folio-memory-stickers">'+art+'</div>':'')+'</div>':'')+'<p class="folio-memory-meta">Day '+s.day+' · '+esc(s.time)+(s.done?' · Visited':'')+(continued?' · continued':'')+'</p><h2 class="folio-memory-title">'+esc(s.title)+'</h2>'+(s.caption?'<p class="folio-memory-caption">'+esc(s.caption)+'</p>':'')+'</article>'};
+    return {kind:'memory',stop:s,continued,html:'<article class="folio-print-item folio-memory'+(s.photo?' has-photo':'')+'" data-stop-id="'+esc(s.id)+'">'+stationStamp(s,'folio-memory-stamp')+((s.photo||art)?'<div class="folio-memory-media">'+(s.photo?'<img class="folio-memory-photo"'+photoAttributes(s.photo)+' src="'+s.photo+'" alt="'+esc(s.title)+'">':'')+(art?'<div class="folio-memory-stickers">'+art+'</div>':'')+'</div>':'')+'<p class="folio-memory-meta">Day '+s.day+' · '+esc(s.time)+(s.done?' · Visited':'')+(continued?' · continued':'')+'</p><h2 class="folio-memory-title">'+esc(s.title)+'</h2>'+(s.caption?'<p class="folio-memory-caption">'+esc(s.caption)+'</p>':'')+'</article>'};
   }
   function splitPaperText(text){
     const half=Math.ceil(text.length/2),line=text.lastIndexOf('\n',half),space=text.lastIndexOf(' ',half);
@@ -2037,7 +2038,7 @@ function photoDimensions(buffer) {
     if(b.dataset.day){ui.day=Number(b.dataset.day);render();document.querySelector('[data-day="'+ui.day+'"]')?.focus({preventScroll:true});return;}
     if(b.dataset.editId){openEditor(b.dataset.editId,'plan');return;}
     if(b.dataset.memoryId){openEditor(b.dataset.memoryId,'memory');return;}
-    if(b.dataset.toggleId){const sid=b.dataset.toggleId;await commit(d=>{const s=d.stops.find(x=>x.id===sid);if(s)s.done=!s.done;return d;});document.querySelector('[data-toggle-id="'+sid+'"]')?.focus({preventScroll:true});return;}
+    if(b.dataset.toggleId){const sid=b.dataset.toggleId;ui.stamped=book.stops.find(x=>x.id===sid)?.done?null:sid;await commit(d=>{const s=d.stops.find(x=>x.id===sid);if(s)s.done=!s.done;return d;});ui.stamped=null;document.querySelector('[data-toggle-id="'+sid+'"]')?.focus({preventScroll:true});return;}
     if(b.dataset.prompt){requestPlan(b.dataset.prompt.replace('{day}',ui.day));return;}
     if(b.dataset.editTab){selectEditorTab(b.dataset.editTab);return;}
     if(b.dataset.sticker&&editor){const k=b.dataset.sticker,a=editor.data.stickers;if(a.includes(k))editor.data.stickers=a.filter(x=>x!==k);else if(a.length<3)a.push(k);else{toast('Choose up to 3 stickers per memory. Tap a selected sticker to remove it.');return;}editor.dirty=true;renderEditorPhoto();return;}

@@ -26,3 +26,13 @@ test('phone journal inlines the shared stamp script and the art defs', () => {
   assert.ok(html.includes(`<!--folio-defs-->${globalThis.FolioStamps.defs}<!--/folio-defs-->`), 'art defs are inlined verbatim');
   assert.ok(html.indexOf('id="folio-stamps"') < html.indexOf('/* Vanilla UI.'), 'stamps load before the UI script');
 });
+
+test('phone journal uses the ticket logo and renders 済 and station stamps', () => {
+  assert.match(html, /<span class="brand-icon"><svg class="brand-mark" aria-hidden="true"><use href="#tf-logo"\/><\/svg><\/span>/);
+  assert.doesNotMatch(html, /data-icon="book"><\/span><span>Travel Folio/);
+  assert.match(html, /<meta name="theme-color" content="#1C2F5C">/);
+  assert.match(html, /class="visit-stamp/);
+  assert.match(html, /stationStamp\(s,'memory-stamp'\)/);
+  assert.match(html, /stationStamp\(s,'folio-memory-stamp'\)/);
+  assert.doesNotMatch(html, /A little room for possibility\./);
+});
