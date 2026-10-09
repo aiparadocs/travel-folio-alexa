@@ -121,6 +121,11 @@ $env:BEDROCK_MODEL_ID = 'YOUR_MODEL_OR_INFERENCE_PROFILE_ID'
 npm start
 ```
 
+Tested on 2026-10-09 with Amazon Nova 2 Lite through the Japan inference profile
+(`AWS_REGION = 'ap-northeast-1'`, `BEDROCK_MODEL_ID = 'jp.amazon.nova-2-lite-v1:0'`; requests
+stay in Tokyo/Osaka) and a short-term
+[Amazon Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html)
+in `AWS_BEARER_TOKEN_BEDROCK`, set only in the server's shell session.
 Model availability is account/region dependent. The AWS SDK uses its standard
 credential provider chain on the server. Never paste credentials into the UI or
 commit them. Bedrock requests can incur AWS charges; no real Bedrock request is made

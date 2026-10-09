@@ -86,12 +86,13 @@ together.
   Every trip action is a real MCP call from an SDK client to the server.
 - **Conversation:** a guided intent engine by default (no cloud account needed to judge
   the demo). An opt-in **Amazon Bedrock** mode uses the Converse API with tool use; the
-  model's tool allowlist cannot apply, undo or confirm anything.
+  model's tool allowlist cannot apply, undo or confirm anything. Verified live with
+  Amazon Nova 2 Lite through the Japan inference profile (requests stay in Tokyo/Osaka).
 - **Weather:** Open-Meteo hourly precipitation, or a clearly labelled sample forecast for
   a reproducible demo. Unknown data is reported as unknown, never as "dry".
 - **State:** each home plan is saved per browser and restored through MCP on return; the
   phone journal persists in IndexedDB with rescue copies.
-- **Quality:** 96 automated tests (real HTTP/MCP journeys, the MCP Apps handshake run
+- **Quality:** 98 automated tests (real HTTP/MCP journeys, the MCP Apps handshake run
   against the real view script, voice-controller timing, restart/restore), plus browser
   QA for the journey, phone storage, printing and the Echo Show cards.
 

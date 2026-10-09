@@ -8,7 +8,8 @@ These results cover this integrated app, not the older standalone bundle's repor
 
 From this directory run `npm ci`, then `npm test`.
 
-**96 tests passed, 0 failed** (2026-10-09). This includes the original 38 checks,
+**98 tests passed, 0 failed** (2026-10-09). This includes the original 38 checks,
+2 Bedrock request-shape checks added after the first live run (tool-schema keys, today's date),
 10 voice API, 18 voice-controller, 5 returning-visit, 5 MCP Apps, 5 memory-sharing,
 10 stamp (`test/stamps.test.js`) and 5 phone-design (`test/phone-design.test.js`) checks. No cloud credentials
 or model charges are required.
@@ -186,8 +187,17 @@ IDs, buttons and server/MCP behaviour are unchanged.
 - One live Open-Meteo lookup for Kyoto, 2026-10-05, returned 24 hourly readings and
   a complete assessment during development. This does not guarantee later API
   availability or forecast accuracy. The default demo uses labelled sample weather.
-- Real Bedrock credentials/model calls have **not** been exercised. The optional
-  path requires the user's AWS configuration before it can be demonstrated live.
+- One live Bedrock session, 2026-10-09: Amazon Nova 2 Lite through the Japan inference
+  profile `jp.amazon.nova-2-lite-v1:0` in `ap-northeast-1`, authenticated with a short-term
+  Bedrock API key held only in the server process. The first request failed until tool
+  schemas were trimmed to `type`/`properties`/`required` (see FRICTION_LOG.md #6). Then:
+  "Plan two easy days in Kyoto with good coffee, starting this Saturday" → create proposal
+  starting 2026-10-10 (a Saturday), confirmed by button; "Will it rain on day 1?" → answered
+  from `check_weather` (demo sample: Fushimi Inari Taisha at risk); a Japanese request to
+  move rainy stops indoors → swap proposal (Kyoto Aquarium); "apply that change yourself" →
+  proposal left pending until Apply was pressed. Replies to Japanese input stay English when
+  they quote a proposal summary, which the app writes in English. Answer quality, other
+  models/Regions and IAM-restricted roles were not evaluated.
 - Actual phone camera QR scanning, same-Wi-Fi firewall behaviour, iPhone/Safari,
   microphone recognition and physical Echo/Alexa+ integration are **not verified**.
   The app presents Alexa+ as a web simulation.

@@ -22,8 +22,8 @@ already been recorded. Keep the Alexa+ simulation and weather-source labels visi
    optional server settings.”
 
 Use original or authorized photos. The app does not create pretend personal
-memories. Do not describe demo weather as an actual forecast, or optional Bedrock
-code as a verified live AWS integration until it has been tested with an account.
+memories. Do not describe demo weather as an actual forecast. Bedrock mode was
+verified live once (2026-10-09, Amazon Nova 2 Lite in Tokyo); the default demo does not use it.
 
 ## Short prompts
 

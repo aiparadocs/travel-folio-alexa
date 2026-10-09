@@ -64,3 +64,17 @@ submitted to Amazon.
   storage, recovery and print-pagination behaviour intact.
 - A decorative photo tilt made a QA check read the rotated bounding box as distortion;
   the check now measures layout boxes and still fails for real stretching.
+
+## 2026-10-09 — First live Amazon Bedrock run
+
+- Short-term Bedrock API key (`AWS_BEARER_TOKEN_BEDROCK`), Amazon Nova 2 Lite through the
+  Japan inference profile in Tokyo. The key was entered into a local launcher that never
+  printed it, and lived only in the server process.
+- The first request failed with only a generic message in the UI. Two fixes: the server
+  now logs the AWS error name and message, and tool schemas are sent with only `type`,
+  `properties` and `required` (Nova rejects the `$schema` key the MCP SDK adds).
+- The model turned "this Saturday" into 2024-06-15. It now receives each city's date and
+  weekday, and the next run produced 2026-10-10.
+- Both fixes have regression tests that inspect the exact Converse request (98 tests).
+  The confirmation boundary held live: asked to apply a change itself, the model could
+  not; the proposal waited for the Apply button.
