@@ -30,9 +30,13 @@ async (page) => {
   const inspectPhotos = async (target, selector, expected, label) => {
     const dimensions = await target.locator(selector).evaluateAll(async images => {
       await Promise.all(images.map(image => image.decode()));
+      // Layout boxes, not getBoundingClientRect: a decorative tilt on the photo frame must not count as distortion.
+      const size = element => { const style = getComputedStyle(element); return { width: parseFloat(style.width), height: parseFloat(style.height) }; };
       return images.map(image => {
-        const box = image.getBoundingClientRect();
-        const wrapper = image.parentElement.getBoundingClientRect();
+        const box = size(image);
+        const parent = image.parentElement;
+        const wrapper = size(parent);
+        const sameParent = image.offsetParent === parent;
         return {
           ratio: box.width / box.height,
           naturalRatio: image.naturalWidth / image.naturalHeight,
@@ -40,8 +44,8 @@ async (page) => {
           height: box.height,
           frameWidth: wrapper.width,
           frameHeight: wrapper.height,
-          offsetX: box.left - wrapper.left,
-          offsetY: box.top - wrapper.top,
+          offsetX: sameParent ? image.offsetLeft : image.offsetLeft - parent.offsetLeft,
+          offsetY: sameParent ? image.offsetTop : image.offsetTop - parent.offsetTop,
           complete: image.complete && image.naturalWidth > 0
         };
       });
