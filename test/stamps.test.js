@@ -35,3 +35,43 @@ test('stamp names: the glyph list has each character once and covers the names',
   assert.equal(new Set(glyphs).size, glyphs.length);
   for (const ch of '金閣寺北野天満宮ー') assert.ok(glyphs.includes(ch), ch);
 });
+
+test('stampSvg: OK, done, rain and station stamps use the shared ink filter', () => {
+  const { stampSvg } = globalThis.FolioStamps;
+  for (const kind of ['ok', 'done', 'rain', 'eki']) {
+    const svg = stampSvg(kind, { name: 'Kinkaku-ji' });
+    assert.match(svg, /^<svg viewBox="0 0 120 120"/, kind);
+    assert.match(svg, /filter="url\(#tf-ink\)"/, kind);
+  }
+  assert.match(stampSvg('ok'), />OK</);
+  assert.match(stampSvg('ok', { sub: 'APPLIED' }), />APPLIED</);
+  assert.match(stampSvg('done'), />済</);
+  assert.match(stampSvg('rain'), /#2B63B5/);
+});
+
+test('stampSvg: station stamp shows the kanji name, place and day, and escapes text', () => {
+  const { stampSvg, stampName } = globalThis.FolioStamps;
+  const svg = stampSvg('eki', { name: stampName('Kinkaku-ji'), top: 'KYOTO', sub: 'DAY 2' });
+  assert.match(svg, />金閣寺</);
+  assert.match(svg, />KYOTO</);
+  assert.match(svg, />DAY 2</);
+  const hostile = stampSvg('eki', { name: '<img/onerror=1>' });
+  assert.doesNotMatch(hostile, /<img/);
+  assert.match(hostile, /&lt;img\/onerror=1&gt;/);
+  assert.match(stampSvg('eki', { name: '<b>&"q"' }), /&lt;b&gt;&amp;&quot;q&quot;/);
+});
+
+test('stampSvg: long English names wrap to two lines and very long ones are clipped', () => {
+  const { stampSvg } = globalThis.FolioStamps;
+  const two = stampSvg('eki', { name: 'Seattle Central Library' });
+  assert.equal((two.match(/font-family="'Folio Display'/g) || []).length, 2);
+  const long = stampSvg('eki', { name: 'Supercalifragilisticexpialidocious' });
+  assert.match(long, /…</);
+});
+
+test('defs: the ink filter and ticket logo are defined once for every page', () => {
+  const { defs } = globalThis.FolioStamps;
+  assert.match(defs, /<filter id="tf-ink"/);
+  assert.match(defs, /<symbol id="tf-logo"/);
+  assert.match(defs, /<mask id="tf-logo-cut">/);
+});
