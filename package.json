@@ -7,7 +7,8 @@
     "start": "node src/server.js",
     "demo": "node scripts/launch.js",
     "share": "node scripts/launch.js --share",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "embed": "node scripts/embed-fonts.js && node scripts/embed-paper.js && node scripts/embed-stamps.js"
   },
   "keywords": [],
   "author": "",

@@ -19,3 +19,10 @@ test('phone journal paper is the approved light kraft texture', () => {
   const light = read('../public/textures/kraft-paper-light.webp').toString('base64');
   assert.ok(html.includes(`--kraft-grain:url("data:image/webp;base64,${light}")`));
 });
+
+test('phone journal inlines the shared stamp script and the art defs', () => {
+  const stamps = read('../public/stamps.js').toString('utf8');
+  assert.ok(html.includes(`<script id="folio-stamps">${stamps}</script>`), 'stamps.js is inlined verbatim');
+  assert.ok(html.includes(`<!--folio-defs-->${globalThis.FolioStamps.defs}<!--/folio-defs-->`), 'art defs are inlined verbatim');
+  assert.ok(html.indexOf('id="folio-stamps"') < html.indexOf('/* Vanilla UI.'), 'stamps load before the UI script');
+});
