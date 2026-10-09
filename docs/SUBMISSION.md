@@ -137,7 +137,7 @@ IndexedDB, Zod, QR code generator.
 ## Links
 
 - Repository: https://github.com/aiparadocs/travel-folio-alexa (MIT)
-- Demo video: `<YouTube URL>`
+- Demo video: https://youtu.be/UHgQZGb5Zu4
 
 ## Product feedback
 

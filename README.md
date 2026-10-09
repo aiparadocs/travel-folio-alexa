@@ -2,6 +2,8 @@
 
 ![Travel Folio: planning a Kyoto weekend by voice on the home page, a two-ticket change proposal and a memory slideshow on the Echo Show, and the phone scrapbook](docs/images/hero.jpg)
 
+**[▶ Watch the 2-minute demo video](https://youtu.be/UHgQZGb5Zu4)**
+
 **Plan a little. Keep a lot.** Plan a trip at home, take it to your phone, turn the
 same itinerary into a scrapbook with photos, words and 32 travel stickers, then relive
 it together on the (simulated) Echo Show.
