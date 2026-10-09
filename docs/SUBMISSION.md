@@ -136,7 +136,7 @@ IndexedDB, Zod, QR code generator.
 
 ## Links
 
-- Repository: `<GitHub URL>` (MIT)
+- Repository: https://github.com/aiparadocs/travel-folio-alexa (MIT)
 - Demo video: `<YouTube URL>`
 
 ## Product feedback
@@ -177,9 +177,9 @@ Paste from [FRICTION_LOG.md](FRICTION_LOG.md).
 
 ## Open Source mini challenge fields
 
-- Contribution URL: `<GitHub URL>`
-- Repository URL: `<GitHub URL>`
-- GitHub username: `<username>`
+- Contribution URL: https://github.com/aiparadocs/travel-folio-alexa
+- Repository URL: https://github.com/aiparadocs/travel-folio-alexa
+- GitHub username: aiparadocs
 - Description: Travel Folio is a new MIT-licensed project: a self-hosted MCP server with
   MCP Apps views for Alexa+-style screens, an Echo Show simulator that implements the
   MCP Apps host and sandbox-proxy lifecycle, and an offline-first phone travel journal.
