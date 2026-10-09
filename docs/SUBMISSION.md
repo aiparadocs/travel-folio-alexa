@@ -15,7 +15,7 @@ together on the Echo Show. Alexa remembers, watches the weather, and never chang
 ## Track and challenges
 
 - Primary track: **Alexa+**
-- Mini challenge: **Open Source** (new MIT-licensed project) `<and AWS Builder if Bedrock is verified>`
+- Mini challenge: **Open Source** (new MIT-licensed project) `<if the form allows a second mini challenge, also tick AWS Builder: Bedrock Converse tool use, verified live with Amazon Nova 2 Lite>`
 
 ## About the project
 
