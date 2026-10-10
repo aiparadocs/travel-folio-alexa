@@ -198,6 +198,41 @@ test('Bedrock is told today\'s date in each city, so "this Saturday" is not gues
   assert.match(system, /relative dates/i);
 });
 
+test('a trip request with a misheard city asks "Kyoto or Seattle?" and keeps what was heard', async (t) => {
+  // Seen on a real microphone: "Plan two easy days in Kyoto with coffee" became this.
+  assert.deepEqual(parseGuided('from two easy days in killed with coffee'), { action: 'ask_city', days: 2, pace: 'relaxed', interests: ['coffee'] });
+  const running = await startServer({ port: 0, agentMode: 'guided', weatherMode: 'demo' });
+  t.after(() => running.close());
+  const a = await browser(running);
+  const asked = await a.post({ message: 'from two easy days in killed with coffee', inputMode: 'voice', language: 'en-US' }, 'chat');
+  assert.equal(asked.status, 200);
+  assert.equal(asked.data.proposal, null);
+  assert.match(asked.data.reply, /Kyoto or Seattle/);
+  assert.match(asked.data.voiceReply, /Kyoto or Seattle/);
+  const answered = await a.post({ message: 'Kyoto', inputMode: 'voice', language: 'en-US' }, 'chat');
+  const { city, days, pace, interests } = answered.data.proposal.details;
+  assert.deepEqual({ city, days, pace, interests }, { city: 'kyoto', days: 2, pace: 'relaxed', interests: ['coffee'] });
+  const b = await browser(running);
+  const japanese = await b.post({ message: '2日間のんびり旅行したい', inputMode: 'voice', language: 'ja-JP' }, 'chat');
+  assert.match(japanese.data.voiceReply, /京都とシアトル/);
+});
+
+test('other recognition guesses can only supply a city, never a confirmation', async (t) => {
+  const running = await startServer({ port: 0, agentMode: 'guided', weatherMode: 'demo' });
+  t.after(() => running.close());
+  const a = await browser(running);
+  const fixed = await a.post({ message: 'from two easy days in killed with coffee', inputMode: 'voice', language: 'en-US', alternatives: ['plan two easy days in Kyoto with coffee'] }, 'chat');
+  assert.equal(fixed.status, 200);
+  assert.equal(fixed.data.proposal.details.city, 'kyoto');
+  assert.equal(fixed.data.proposal.details.pace, 'relaxed');
+  const no = await a.post({ message: 'no', inputMode: 'voice', language: 'en-US', proposalId: fixed.data.proposal.proposalId, alternatives: ['yes'] }, 'chat');
+  assert.equal(no.data.trip, null, 'the guess "yes" is ignored');
+  assert.equal(no.data.proposal, null, 'the heard "no" cancels');
+  for (const alternatives of ['yes', [1], ['a', 'b', 'c'], ['x'.repeat(1001)]]) {
+    assert.equal((await a.post({ message: 'hello', inputMode: 'voice', alternatives }, 'chat')).status, 400);
+  }
+});
+
 test('guided bilingual commands and model loop have strict bounds', async () => {
   assert.deepEqual(parseGuided('京都に2日間、のんびりカフェと文化'), { action: 'create', city: 'kyoto', days: 2, pace: 'relaxed', interests: ['coffee', 'culture'] });
   assert.deepEqual(parseGuided('Delay day two by one hour'), { action: 'delay', day: 2, minutes: 60 });

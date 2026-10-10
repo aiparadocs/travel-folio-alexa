@@ -115,7 +115,8 @@ window.createVoiceConversation = function createVoiceConversation(options) {
     rec.lang = language;
     rec.continuous = false;
     rec.interimResults = true;
-    rec.maxAlternatives = 1;
+    // Extra guesses help the server recover a misheard place name ("Kyoto" heard as "killed").
+    rec.maxAlternatives = 3;
     const valid = () => current(token) && microphone === rec && !accepted;
     status('starting', text('Starting microphone…', 'マイクに接続中…'));
     timer = window.setTimeout(() => {
@@ -139,6 +140,8 @@ window.createVoiceConversation = function createVoiceConversation(options) {
       }
       const message = finals.map(result => result[0]?.transcript || '').join(' ').trim().slice(0, 1000);
       if (!message) { quietTurn(token); return; }
+      const alternatives = [...new Set([1, 2].map(i => finals.map(result => (result[i] || result[0])?.transcript || '').join(' ').trim().slice(0, 1000)))]
+        .filter(guess => guess && guess !== message);
       accepted = true;
       clearTimer();
       releaseMic();
@@ -148,7 +151,7 @@ window.createVoiceConversation = function createVoiceConversation(options) {
       armedProposalId = null;
       status('thinking', text('Planning…', '旅程を作成中…'));
       let response;
-      try { response = await options.onMessage({ message, inputMode: 'voice', language, proposalId }); }
+      try { response = await options.onMessage({ message, inputMode: 'voice', language, proposalId, ...(alternatives.length ? { alternatives } : {}) }); }
       catch { response = null; }
       if (!current(token)) return;
       if (!response) {

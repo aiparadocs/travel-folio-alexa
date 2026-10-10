@@ -111,6 +111,21 @@ test('voice waits for explicit start and submits one final utterance, never inte
   assert.equal(h.records.length, 1, 'microphone remains off while speaking');
 });
 
+test('voice forwards up to two other recognition guesses, so a misheard place name can be recovered', async () => {
+  const h = harness();
+  h.voice.start();
+  const rec = h.records[0];
+  assert.equal(rec.maxAlternatives, 3);
+  const guesses = ['from two easy days in killed with coffee', 'plan two easy days in Kyoto with coffee', 'from two easy days in killed with coffee'];
+  await rec.onresult({ resultIndex: 0, results: [Object.assign(guesses.map((transcript) => ({ transcript })), { isFinal: true })] });
+  assert.equal(h.requests[0].message, guesses[0]);
+  assert.deepEqual(h.requests[0].alternatives, [guesses[1]], 'duplicates of the heard text are dropped');
+  const single = harness();
+  single.voice.start();
+  await say(single, 'Plan Kyoto');
+  assert.equal('alternatives' in single.requests[0], false);
+});
+
 test('confirmation is armed only after the exact proposal finishes speaking', async () => {
   const h = harness({ onMessage: () => proposalResponse() });
   h.state.proposal = { proposalId: 'p-1' };

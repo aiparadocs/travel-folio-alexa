@@ -189,7 +189,8 @@ export async function startServer(options = {}) {
     if (body.inputMode !== undefined && !['text', 'voice'].includes(body.inputMode)) throw new UserError('inputMode must be text or voice.');
     if (body.language !== undefined && !['en-US', 'ja-JP'].includes(body.language)) throw new UserError('Choose English or Japanese for voice.');
     if (body.proposalId !== undefined && body.proposalId !== null && (typeof body.proposalId !== 'string' || body.proposalId.length > 80)) throw new UserError('Invalid voice proposal reference.');
-    return session.chat(body.message.trim(), { inputMode: body.inputMode, language: body.language, proposalId: body.proposalId });
+    if (body.alternatives !== undefined && (!Array.isArray(body.alternatives) || body.alternatives.length > 2 || body.alternatives.some((alt) => typeof alt !== 'string' || alt.length > 1000))) throw new UserError('alternatives must be at most two recognition guesses.');
+    return session.chat(body.message.trim(), { inputMode: body.inputMode, language: body.language, proposalId: body.proposalId, alternatives: body.alternatives });
   }));
   app.get('/api/app-call', (req, res) => res.json(req.folio.app ? { id: req.folio.app.id, tool: req.folio.app.tool, arguments: req.folio.app.arguments, result: req.folio.app.result } : null));
   app.get('/api/app-view', async (req, res, next) => {

@@ -106,6 +106,7 @@ export class ConversationSession {
     this.trip = null;
     this.proposal = null;
     this.handoff = null;
+    this.pendingTrip = null; // what was heard before asking "Kyoto or Seattle?"
     this.weather = null;
     this.trace = [];
     this.messages = [{ role: 'assistant', text: 'Let’s plan something worth remembering. Choose Kyoto or Seattle, then take your plan to the phone journal. This is a simulated Alexa+ experience.' }];
@@ -261,6 +262,11 @@ export class ConversationSession {
       return `Here ${items.length === 1 ? 'is a memory' : `are ${items.length} memories`} from “${title}”${day ? `, day ${day}` : ''}. Let’s relive the trip together.`;
     }
     if (action === 'open' || action === 'repeat') return this.trip ? `Your ${this.trip.days.length}-day ${cityName(this.trip.city, false)} plan is here. Ask about the weather, make a change, or take it to your phone.` : 'Where would you like to go: Kyoto or Seattle? You can also tell me the number of days and what you enjoy.';
+    if (action === 'ask_city') {
+      const { days, pace, interests, startDate } = input;
+      this.pendingTrip = { days, pace, interests, ...(startDate ? { startDate } : {}) };
+      return 'Which city would you like: Kyoto or Seattle? Those are the two places I can plan.';
+    }
     if (action === 'create') {
       const reply = this.prepareCreate(input);
       await this.previewCreate();
@@ -347,6 +353,7 @@ export class ConversationSession {
     else if (action === 'memories' && this.lastToolResult?.name === 'show_memories') spoken = japanese ? '思い出を画面に映しました。旅を一緒に振り返りましょう。' : 'Here are your memories, on the screen. Let’s relive the trip together.';
     else if (action === 'decline') spoken = japanese ? 'キャンセルしました。旅程は変更していません。次はどうしましょうか。' : 'Cancelled. Your plan is unchanged. What would you like to do next?';
     else if (action === 'undo') spoken = japanese ? '直前の旅程に戻しました。' : 'I restored the previous plan.';
+    else if (action === 'ask_city') spoken = japanese ? '京都とシアトル、どちらにしますか？この2つの街の旅を作れます。' : reply;
     else if (action === 'next' && this.lastToolResult?.data) {
       const { next, day } = this.lastToolResult.data;
       spoken = japanese ? next ? `${day}日目の次の予定は、${next.time}の${next.title}です。` : `${day}日目の未訪問の予定は残っていません。` : reply;
@@ -354,13 +361,23 @@ export class ConversationSession {
     else spoken = japanese && this.config.agentMode === 'guided' ? 'このガイドでは京都とシアトルの旅を作れます。例えば「京都に2日間、カフェ多めでゆっくり」と言ってください。旅程があれば、天気の確認、屋内への変更、時間の変更、スマホへの受け渡しもできます。' : reply;
     return { voiceReply: spoken, voiceLanguage: language, voiceProposalId: null, voiceHandoffReady: handoffReady };
   }
-  async chat(message, { inputMode = 'text', language = 'en-US', proposalId } = {}) {
+  async chat(message, { inputMode = 'text', language = 'en-US', proposalId, alternatives = [] } = {}) {
     this.pruneProposal();
     this.lastToolResult = null;
     this.handoffCreatedThisTurn = false;
     this.addMessage('user', message);
-    const parsed = parseGuided(message);
+    let parsed = parseGuided(message);
     const voice = inputMode === 'voice';
+    // Other recognition guesses may only supply a misheard city; every other word,
+    // and above all a confirmation, comes from what was actually heard.
+    if (voice && parsed?.action === 'ask_city') {
+      const city = alternatives.map(parseGuided).find((guess) => guess?.action === 'create')?.city;
+      if (city) parsed = { ...parsed, action: 'create', city };
+    }
+    // "Kyoto" after "Which city?" keeps the days, pace and interests heard before.
+    if (parsed?.action === 'create' && parsed.cityOnly && this.pendingTrip) parsed = { ...parsed, ...this.pendingTrip };
+    if (parsed) delete parsed.cityOnly;
+    this.pendingTrip = null;
     let confirmationBlocked = false;
     let confirmedKind = null;
     let reply;

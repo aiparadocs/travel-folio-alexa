@@ -39,20 +39,28 @@ export function parseGuided(message) {
   if (/(add|another|追加|増や).*(coffee|cafe|café|コーヒー|カフェ)|(coffee|cafe|コーヒー|カフェ).*(追加|増や)/.test(text)) return { action: 'coffee', day };
   const city = /kyoto|京都/.test(text) ? 'kyoto' : /seattle|シアトル/.test(text) ? 'seattle' : null;
   if (city) {
-    const daysMatch = text.match(/(\d+|one|two|three|four)[ -]*(?:(?:easy|relaxed|slow)[ -]+)?days?/) || text.match(/(\d+)日/);
-    const japaneseDays = text.match(/(一|二|三|四)日/);
-    const interests = [];
-    for (const [id, pattern] of Object.entries({ coffee: /coffee|cafe|café|コーヒー|カフェ/, culture: /culture|art|temples?|shrines?|museums?|文化|寺|神社|美術/, food: /food|食|グルメ/, nature: /nature|自然/, shopping: /shopping|買い物/, views: /views?|景色/, family: /family|家族/ })) {
-      if (pattern.test(text)) interests.push(id);
-    }
-    return {
-      action: 'create', city, days: daysMatch ? number(daysMatch[1]) : japaneseDays ? { 一: 1, 二: 2, 三: 3, 四: 4 }[japaneseDays[1]] : 2,
-      pace: /relax|slow|easy|ゆっくり|のんびり/.test(text) ? 'relaxed' : /packed|busy|たくさん/.test(text) ? 'packed' : 'balanced',
-      interests: interests.length ? interests : ['coffee', 'culture'],
-      ...(text.match(/\d{4}-\d{2}-\d{2}/) ? { startDate: text.match(/\d{4}-\d{2}-\d{2}/)[0] } : {}),
-    };
+    const cityOnly = /^(?:(?:to|in|go to|let'?s go to)\s+)?(?:kyoto|seattle|京都|シアトル)(?:\s+please)?(?:で|に|へ)?(?:お願い(?:します)?)?$/.test(text);
+    return { action: 'create', city, ...tripDetails(text), ...(cityOnly ? { cityOnly: true } : {}) };
   }
+  // Speech recognition often mishears place names ("Kyoto" → "killed"). A trip request
+  // without a city we know is asked about, never guessed.
+  if (/\b(?:days?|trip|weekend|travel|holiday|vacation)\b|日間|旅行/.test(text)) return { action: 'ask_city', ...tripDetails(text) };
   return null;
+}
+
+function tripDetails(text) {
+  const daysMatch = text.match(/(\d+|one|two|three|four)[ -]*(?:(?:easy|relaxed|slow)[ -]+)?days?/) || text.match(/(\d+)日/);
+  const japaneseDays = text.match(/(一|二|三|四)日/);
+  const interests = [];
+  for (const [id, pattern] of Object.entries({ coffee: /coffee|cafe|café|コーヒー|カフェ/, culture: /culture|art|temples?|shrines?|museums?|文化|寺|神社|美術/, food: /food|食|グルメ/, nature: /nature|自然/, shopping: /shopping|買い物/, views: /views?|景色/, family: /family|家族/ })) {
+    if (pattern.test(text)) interests.push(id);
+  }
+  return {
+    days: daysMatch ? number(daysMatch[1]) : japaneseDays ? { 一: 1, 二: 2, 三: 3, 四: 4 }[japaneseDays[1]] : 2,
+    pace: /relax|slow|easy|ゆっくり|のんびり/.test(text) ? 'relaxed' : /packed|busy|たくさん/.test(text) ? 'packed' : 'balanced',
+    interests: interests.length ? interests : ['coffee', 'culture'],
+    ...(text.match(/\d{4}-\d{2}-\d{2}/) ? { startDate: text.match(/\d{4}-\d{2}-\d{2}/)[0] } : {}),
+  };
 }
 
 export const GUIDED_HELP = 'This guided demo supports Kyoto and Seattle. Try “Plan a relaxed two-day Kyoto trip with coffee and culture”, “Check weather”, “Move day 1 thirty minutes later”, “Show our memories”, or use the buttons. It cannot research bookings, transport, or other destinations.';
