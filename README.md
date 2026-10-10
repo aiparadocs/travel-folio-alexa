@@ -72,6 +72,16 @@ the app on that private network if your firewall asks. VPN adapters or guest Wi-
 can prevent access. If the wrong adapter was chosen, set `PUBLIC_BASE_URL` to the
 actual LAN origin, for example `http://192.168.1.20:4317` (replace that address).
 
+The QR code holds a short link that this computer redirects to the full plan link, so
+it stays easy to scan. It works for a day, or until the server stops.
+
+**The phone reads the QR code but the page never loads?** It is usually the firewall.
+On Windows, a firewall prompt answered for the wrong network type can leave an inbound
+*block* rule for Node.js on private networks, and block rules win over allow rules.
+Open *Windows Defender Firewall with Advanced Security → Inbound Rules*, look for
+"Node.js JavaScript Runtime" with a block icon on the Private profile, and disable it
+(allowing Node.js on private networks only is enough).
+
 The ordinary localhost launch gives a working link for this computer, and explains
 why that link cannot be scanned from a different phone. No public hosting is created.
 

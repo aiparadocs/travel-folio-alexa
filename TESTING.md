@@ -8,8 +8,9 @@ These results cover this integrated app, not the older standalone bundle's repor
 
 From this directory run `npm ci`, then `npm test`.
 
-**98 tests passed, 0 failed** (2026-10-09). This includes the original 38 checks,
+**102 tests passed, 0 failed** (2026-10-10). This includes the original 38 checks,
 2 Bedrock request-shape checks added after the first live run (tool-schema keys, today's date),
+4 checks added after the first real-device run (short-link QR, misheard city, recognition guesses),
 10 voice API, 18 voice-controller, 5 returning-visit, 5 MCP Apps, 5 memory-sharing,
 10 stamp (`test/stamps.test.js`) and 5 phone-design (`test/phone-design.test.js`) checks. No cloud credentials
 or model charges are required.
@@ -198,9 +199,18 @@ IDs, buttons and server/MCP behaviour are unchanged.
   proposal left pending until Apply was pressed. Replies to Japanese input stay English when
   they quote a proposal summary, which the app writes in English. Answer quality, other
   models/Regions and IAM-restricted roles were not evaluated.
-- Actual phone camera QR scanning, same-Wi-Fi firewall behaviour, iPhone/Safari,
-  microphone recognition and physical Echo/Alexa+ integration are **not verified**.
+- First real-device run, 2026-10-10 (Windows PC, Chrome, the user's phone on the same
+  network). The microphone worked: speech was transcribed and sent, but "Plan two easy days
+  in Kyoto with coffee" was heard as "from two easy days in killed with coffee" and got the
+  generic help text. Now such a request asks "Kyoto or Seattle?" and keeps what was heard,
+  and other recognition guesses may supply the city. The phone camera could not read the
+  handoff QR (a whole plan made it version 25, 117 modules); it now carries a short link
+  (version 3). Opening the page on the phone was then blocked by an existing Windows
+  Firewall rule that blocks Node.js on private networks, so the phone import itself is
+  still **not verified on a device** (README explains the firewall check).
+- iPhone/Safari and physical Echo/Alexa+ integration are **not verified**.
   The app presents Alexa+ as a web simulation.
-- No public deployment or contest submission has been made. Home plans are
+- The repository is public on GitHub and the demo video is on YouTube; the app itself is not
+  hosted anywhere. Home plans are
   saved in `data/homes/` when started with `npm start` or a launcher; phone journals are browser-local
   copies and should be exported for safekeeping.

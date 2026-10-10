@@ -78,3 +78,17 @@ submitted to Amazon.
 - Both fixes have regression tests that inspect the exact Converse request (98 tests).
   The confirmation boundary held live: asked to apply a change itself, the model could
   not; the proposal waited for the Apply button.
+
+## 2026-10-10 — First real-device run
+
+- Microphone: recognition worked, but "Kyoto" was heard as "killed" (and "Plan" as
+  "from"). The guided parser now treats a trip request without a known city as a
+  question, "Kyoto or Seattle?", and keeps the days, pace and interests it heard for a
+  one-word answer. The browser asks for three recognition guesses and sends the other
+  two; the server uses them only to fill in a city, so a guessed "yes" can never confirm.
+- QR: a whole plan in the code needed version 25 (117 modules) and the phone camera could
+  not read it off the screen. The QR now holds `/t/<code>` (72-bit random, a day or until
+  restart), which redirects to the full `#trip=` link; Open journal and Copy link keep
+  the full link.
+- The phone then could not reach the PC: an older Windows Firewall rule blocked Node.js
+  on private networks (block rules beat allow rules). Documented in README.
