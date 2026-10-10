@@ -117,11 +117,27 @@ export async function startServer(options = {}) {
       res.json({ ok: true, count });
     } catch (error) { res.status(400).json({ error: error.message }); }
   });
+  // Phone QR codes carry a short random link to the full plan link. The phone has to
+  // reach this computer to load the journal anyway; links last a day or until restart.
+  const shortLinks = new Map();
+  const shorten = (target) => {
+    const now = Date.now();
+    for (const [code, entry] of shortLinks) if (entry.expires < now || shortLinks.size > 500) shortLinks.delete(code);
+    const code = randomBytes(9).toString('base64url');
+    shortLinks.set(code, { target, expires: now + 24 * 60 * 60 * 1000 });
+    return code;
+  };
+  app.get('/t/:code', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    const entry = shortLinks.get(req.params.code);
+    if (!entry || entry.expires < Date.now()) return res.status(404).type('text').send('This QR code has expired. On the home screen, choose "Take to my phone" again.');
+    res.redirect(302, entry.target);
+  });
   app.use(express.json({ limit: '32kb' }));
   const mcp = mountMcp(app, (req) => {
     const store = stores.get(req.header('x-folio-session'));
     const id = req.header('x-folio-session');
-    return store ? { store, memories: shelves.get(id), homeToken: homeToken(id), publicBaseUrl: () => publicBase, weatherMode, ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}) } : null;
+    return store ? { store, memories: shelves.get(id), homeToken: homeToken(id), publicBaseUrl: () => publicBase, shorten, weatherMode, ...(options.fetchImpl ? { fetchImpl: options.fetchImpl } : {}) } : null;
   }, '/mcp', {
     authorize: (req) => bearerMatches(req.headers.authorization, token),
     owner: (req) => req.header('x-folio-session'),

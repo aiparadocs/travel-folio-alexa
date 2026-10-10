@@ -70,18 +70,22 @@ export function phoneLink(trip, baseUrl, { homeToken } = {}) {
   return `${base.href}#trip=${compress(JSON.stringify(packForPhone(trip)))}`;
 }
 
-export async function handoff(trip, baseUrl, linkOptions = {}) {
+export async function handoff(trip, baseUrl, { shorten, ...linkOptions } = {}) {
   const url = phoneLink(trip, baseUrl, linkOptions);
+  // A whole plan in the QR needs version 25+, too dense for a phone camera to read
+  // off a screen. With a resolver the QR carries a short link (version 3) instead;
+  // "Open journal" and "Copy link" keep the full, portable link.
+  const qrUrl = shorten ? new URL(`/t/${shorten(url)}`, baseUrl).href : url;
   const options = { type: 'svg', margin: 4, color: { dark: '#14202b', light: '#ffffff' } };
   // Full four-day plans can exceed the M-level QR capacity. Keep every note
   // in the portable link and use L correction for these larger codes.
   let qrSvg;
   try {
-    qrSvg = await QRCode.toString(url, { ...options, errorCorrectionLevel: 'M' });
+    qrSvg = await QRCode.toString(qrUrl, { ...options, errorCorrectionLevel: 'M' });
   } catch {
-    qrSvg = await QRCode.toString(url, { ...options, errorCorrectionLevel: 'L' });
+    qrSvg = await QRCode.toString(qrUrl, { ...options, errorCorrectionLevel: 'L' });
   }
   const host = new URL(baseUrl).hostname;
   const reachable = !(host === 'localhost' || host.endsWith('.localhost') || host === '0.0.0.0' || host === '[::]' || host === '[::1]' || /^127\./.test(host));
-  return { url, qrSvg, reachableFromPhone: reachable, length: url.length };
+  return { url, qrUrl, qrSvg, reachableFromPhone: reachable, length: url.length };
 }

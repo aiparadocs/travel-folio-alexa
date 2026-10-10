@@ -69,6 +69,11 @@ test('real HTTP MCP end-to-end: confirmation, isolation, changes, undo, QR, and 
   const packed = JSON.parse(decompress(new URL(handoff.data.handoff.url).hash.slice('#trip='.length)));
   assert.equal(packed[0], 2);
   assert.equal(packed[2], 'Kyoto');
+  assert.match(handoff.data.handoff.qrUrl, /\/t\/[A-Za-z0-9_-]{12}$/, 'the QR carries a short link');
+  const hop = await fetch(handoff.data.handoff.qrUrl, { redirect: 'manual' });
+  assert.equal(hop.status, 302);
+  assert.equal(hop.headers.get('location'), handoff.data.handoff.url, 'the short link opens the full plan link');
+  assert.equal((await fetch(`${running.url}/t/not-a-real-code`, { redirect: 'manual' })).status, 404);
   const replacement = await a.post({ action: 'create', city: 'seattle' });
   assert.equal(replacement.data.trip.city, 'kyoto');
   const declined = await a.post({ action: 'decline' });

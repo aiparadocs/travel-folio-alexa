@@ -58,6 +58,19 @@ test('long four-day plans produce a full QR without discarding notes', async () 
   }
 });
 
+test('with a short-link resolver the QR stays small enough for a phone camera', async () => {
+  // A whole two-day plan in the QR needs version 25 (117 modules): too dense to scan on screen.
+  const trip = createTrip({ city: 'kyoto', days: 4, pace: 'packed', interests: ['coffee', 'culture'], startDate: '2026-10-05' });
+  const seen = [];
+  const result = await handoff(trip, 'http://192.168.1.123:3000', { homeToken: 'a'.repeat(32), shorten: (url) => { seen.push(url); return 'abcDEF123_-x'; } });
+  assert.equal(result.qrUrl, 'http://192.168.1.123:3000/t/abcDEF123_-x');
+  assert.deepEqual(seen, [result.url], 'the short link resolves to the full plan link');
+  assert.match(result.qrSvg, /viewBox="0 0 37 37"/, 'version 3: 29 modules plus the quiet zone');
+  assert.deepEqual(JSON.parse(decompress(new URL(result.url).hash.slice(6))), packForPhone(trip));
+  const plain = await handoff(trip, 'http://192.168.1.123:3000');
+  assert.equal(plain.qrUrl, plain.url, 'without a resolver the QR carries the whole plan');
+});
+
 test('loopback and bind addresses are not advertised as phone-reachable', async () => {
   const trip = createTrip({ city: 'kyoto', days: 1 });
   for (const base of ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://[::1]:3000', 'http://0.0.0.0:3000', 'http://[::]:3000']) {
