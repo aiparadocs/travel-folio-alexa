@@ -227,7 +227,7 @@ The [organizer's simulation clarification](https://amazonappdev2026.devpost.com/
 allows a simulated conversational experience without live model calls or voice.
 This implementation also demonstrates real MCP tool calls. See the current
 [rules](https://amazonappdev2026.devpost.com/rules) when preparing a submission.
-No repository has been published, no contest submission has been sent, and no real
+The repository is public on GitHub, but no contest submission has been sent, and no real
 Alexa+ or Echo integration is claimed here.
 
 ## Sources and credits
